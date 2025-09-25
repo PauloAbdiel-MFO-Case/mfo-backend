@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Simulation {
+  id        Int                 @id @default(autoincrement())
+  name      String              @unique
+  createdAt DateTime            @default(now())
+  versions  SimulationVersion[]
+}
+
+model SimulationVersion {
+  id                Int                @id @default(autoincrement())
+  simulation        Simulation         @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+  simulationId      Int
+  version           Int
+  startDate         DateTime
+  realInterestRate  Float
+  isLegacy          Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  movements         Movement[]
+  insurances        Insurance[]
+  allocationRecords AllocationRecord[]
+
+  @@unique([simulationId, version])
+}
+
+model Allocation {
+  id      Int                @id @default(autoincrement())
+  name    String
+  type    String
+  records AllocationRecord[]
+}
+
+model AllocationRecord {
+  id                  Int                @id @default(autoincrement())
+  allocation          Allocation         @relation(fields: [allocationId], references: [id], onDelete: Cascade)
+  allocationId        Int
+  value               Float
+  date                DateTime
+  simulationVersion   SimulationVersion? @relation(fields: [simulationVersionId], references: [id], onDelete: SetNull)
+  simulationVersionId Int?
+  initialPayment      Float?
+  installments        Int?
+  interestRate        Float?
+}
+
+model Movement {
+  id                  Int               @id @default(autoincrement())
+  simulationVersion   SimulationVersion @relation(fields: [simulationVersionId], references: [id], onDelete: Cascade)
+  simulationVersionId Int
+  type                String
+  description         String
+  value               Float
+  frequency           String
+  startDate           DateTime
+  endDate             DateTime?
+}
+
+model Insurance {
+  id                  Int               @id @default(autoincrement())
+  simulationVersion   SimulationVersion @relation(fields: [simulationVersionId], references: [id], onDelete: Cascade)
+  simulationVersionId Int
+  name                String
+  startDate           DateTime
+  durationMonths      Int
+  monthlyPremium      Float
+  insuredValue        Float
+}
