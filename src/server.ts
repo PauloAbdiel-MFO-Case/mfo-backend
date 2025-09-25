@@ -8,6 +8,7 @@ import {
 import { simulationRoutes } from './routes/simulationRoutes';
 import { movementRoutes } from './routes/movementRoutes';
 import { allocationRoutes } from './routes/allocationRoutes';
+import { insuranceRoutes } from './routes/insuranceRoutes';
 
 const app = fastify({
   logger: true,
@@ -19,6 +20,7 @@ app.setSerializerCompiler(serializerCompiler);
 app.register(simulationRoutes);
 app.register(movementRoutes);
 app.register(allocationRoutes);
+app.register(insuranceRoutes);
 
 const start = async () => {
   try {
