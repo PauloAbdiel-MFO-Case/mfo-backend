@@ -22,6 +22,7 @@ model SimulationVersion {
   startDate         DateTime
   realInterestRate  Float
   isLegacy          Boolean            @default(false)
+  isLatest          Boolean            @default(true)
   createdAt         DateTime           @default(now())
   movements         Movement[]
   insurances        Insurance[]
