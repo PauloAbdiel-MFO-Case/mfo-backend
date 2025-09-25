@@ -59,6 +59,10 @@ async function findByName(name: string) {
   return simulation;
 }
 
+async function findVersionById(id: number) {
+  return SimulationRepository.findVersionByIdWithDetails(id);
+}
+
 async function createFromVersion(
   sourceVersion: DetailedSimulationVersion,
   newName: string,
@@ -222,5 +226,6 @@ export const SimulationRepository = {
   findByName,
   createFromVersion,
   updateVersion,
-  createNewVersion
+  createNewVersion,
+  findVersionById
 };

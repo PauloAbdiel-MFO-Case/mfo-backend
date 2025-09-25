@@ -38,3 +38,9 @@ export const createNewVersionSchema = {
     simulationId: z.coerce.number().int().positive(),
   }),
 };
+
+export const getSimulationVersionSchema = {
+  params: z.object({
+    versionId: z.coerce.number().int().positive(),
+  }),
+};

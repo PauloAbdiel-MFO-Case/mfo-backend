@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { ProjectionService } from '../services/ProjectionService';
-import { createNewVersionSchema, createSimulationSchema, deleteSimulationSchema, getProjectionSchema, updateSimulationSchema } from '../schemas/simulationSchemas';
+import { createNewVersionSchema, createSimulationSchema, deleteSimulationSchema, getProjectionSchema, getSimulationVersionSchema, updateSimulationSchema } from '../schemas/simulationSchemas';
 import { SimulationService } from 'src/services/SimulationService';
 
 export async function simulationRoutes(app: FastifyInstance) {
@@ -129,6 +129,27 @@ export async function simulationRoutes(app: FastifyInstance) {
         return reply
           .status(500)
           .send({ message: 'Error creating new version.' });
+      }
+    },
+  );
+
+  app.get(
+    '/simulations/versions/:versionId',
+    { schema: getSimulationVersionSchema },
+    async (request, reply) => {
+      try {
+        const { versionId }: any = request.params;
+        const versionDetails = await SimulationService.findVersionById(versionId);
+        return reply.send(versionDetails);
+      } catch (error: any) {
+        if (error.code === 'P2025') {
+          return reply
+            .status(404)
+            .send({ message: 'Simulation version not found.' });
+        }
+        return reply
+          .status(500)
+          .send({ message: 'Error fetching simulation version.' });
       }
     },
   );

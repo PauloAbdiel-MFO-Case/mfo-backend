@@ -33,10 +33,19 @@ async function createNewVersion(simulationId: number) {
   return SimulationRepository.createNewVersion(simulationId);
 }
 
+async function findVersionById(id: number) {
+  const version = await SimulationRepository.findVersionById(id);
+  if (!version) {
+    throw new Error('Simulation version not found.');
+  }
+  return version;
+}
+
 export const SimulationService = {
   listAll,
   deleteById,
   createFromVersion,
   update,
-  createNewVersion
+  createNewVersion,
+  findVersionById
 };
