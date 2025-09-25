@@ -50,10 +50,15 @@ async function updateRecord(id: number, data: Prisma.AllocationRecordUpdateInput
   return record;
 }
 
-
+async function deleteRecord(id: number) {
+  await prisma.allocationRecord.delete({
+    where: { id },
+  });
+}
 
 export const AllocationRepository = {
   create,
   addRecord,
-  updateRecord
+  updateRecord,
+  deleteRecord
 };

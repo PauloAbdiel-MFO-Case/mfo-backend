@@ -37,3 +37,9 @@ export const updateAllocationRecordSchema = {
     date: z.coerce.date().optional(),
   }),
 };
+
+export const deleteAllocationRecordSchema = {
+  params: z.object({
+    recordId: z.coerce.number().int().positive(),
+  }),
+};

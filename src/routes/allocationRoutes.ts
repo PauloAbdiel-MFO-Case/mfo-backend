@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { createAllocationRecordSchema, createAllocationSchema, updateAllocationRecordSchema } from '../schemas/allocationSchemas';
+import { createAllocationRecordSchema, createAllocationSchema, deleteAllocationRecordSchema, updateAllocationRecordSchema } from '../schemas/allocationSchemas';
 import { AllocationService } from '../services/AllocationService';
 
 export async function allocationRoutes(app: FastifyInstance) {
@@ -66,6 +66,25 @@ export async function allocationRoutes(app: FastifyInstance) {
         return reply
           .status(500)
           .send({ message: 'Error updating allocation record.' });
+      }
+    },
+  );
+
+  app.delete(
+    '/allocation-records/:recordId',
+    { schema: deleteAllocationRecordSchema },
+    async (request, reply) => {
+      try {
+        const { recordId }: any = request.params;
+        await AllocationService.deleteRecord(recordId);
+        return reply.status(204).send();
+      } catch (error: any) {
+        if (error.code === 'P2025') {
+          return reply.status(404).send({ message: 'Record not found.' });
+        }
+        return reply
+          .status(500)
+          .send({ message: 'Error deleting allocation record.' });
       }
     },
   );

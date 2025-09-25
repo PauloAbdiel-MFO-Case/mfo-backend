@@ -26,8 +26,13 @@ async function updateRecord(
   return updatedRecord;
 }
 
+async function deleteRecord(id: number) {
+  await AllocationRepository.deleteRecord(id);
+}
+
 export const AllocationService = {
   create,
   addRecord,
-  updateRecord
+  updateRecord,
+  deleteRecord
 };
