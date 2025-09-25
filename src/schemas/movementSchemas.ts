@@ -27,3 +27,9 @@ export const updateMovementSchema = {
     endDate: z.coerce.date().optional().nullable(),
   }),
 };
+
+export const deleteMovementSchema = {
+  params: z.object({
+    movementId: z.coerce.number().int().positive(),
+  }),
+};

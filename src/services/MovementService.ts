@@ -22,7 +22,12 @@ async function update(
   return movement;
 }
 
+async function deleteById(id: number) {
+  await MovementRepository.deleteById(id);
+}
+
 export const MovementService = {
   create,
-  update
+  update,
+  deleteById
 };

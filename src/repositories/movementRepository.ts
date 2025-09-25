@@ -16,7 +16,14 @@ async function update(id: number, data: Prisma.MovementUpdateInput) {
   return movement;
 }
 
+async function deleteById(id: number) {
+  await prisma.movement.delete({
+    where: { id },
+  });
+}
+
 export const MovementRepository = {
   create,
-  update
+  update,
+  deleteById
 };
