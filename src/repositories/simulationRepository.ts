@@ -129,8 +129,29 @@ async function updateVersion(id: number, data: SimulationUpdateData) {
     if (versionToUpdate.simulation.name === 'Situação Atual') {
       throw new Error('The name and date of "Situação Atual" cannot be changed.');
     }
-
+    
     if (data.name && data.name !== versionToUpdate.simulation.name) {
+      const otherSimulation = await tx.simulation.findUnique({
+        where: { name: data.name },
+      });
+
+      if (otherSimulation) {
+        const isCurrentSimulationOlder =
+          versionToUpdate.simulation.createdAt < otherSimulation.createdAt;
+
+        if (isCurrentSimulationOlder) {
+          await tx.simulationVersion.update({
+            where: { id: versionToUpdate.id },
+            data: { isLegacy: true },
+          });
+        } else {
+          await tx.simulationVersion.updateMany({
+            where: { simulationId: otherSimulation.id, isLatest: true },
+            data: { isLegacy: true },
+          });
+        }
+      }
+      
       await tx.simulation.update({
         where: { id: versionToUpdate.simulationId },
         data: { name: data.name },
