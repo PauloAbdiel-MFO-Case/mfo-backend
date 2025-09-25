@@ -5,6 +5,10 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Start seeding...');
 
+  // Limpa os dados antigos para garantir um estado limpo
+  await prisma.movement.deleteMany();
+  await prisma.allocationRecord.deleteMany();
+  await prisma.simulationVersion.deleteMany();
   await prisma.simulation.deleteMany();
   await prisma.allocation.deleteMany();
 
@@ -81,7 +85,12 @@ async function main() {
     },
   });
 
+  // --- MUDANÇA IMPORTANTE ABAIXO ---
   console.log('Seeding finished.');
+  console.log('---------------------------------');
+  console.log(`✅ SimulationVersion criada com ID: ${currentVersion.id}`);
+  console.log('Use este ID para testar o endpoint!');
+  console.log('---------------------------------');
 }
 
 main()

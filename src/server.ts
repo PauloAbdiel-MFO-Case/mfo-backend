@@ -1,14 +1,20 @@
 import fastify from 'fastify';
-import { z } from 'zod';
 import 'dotenv/config';
+import {
+  ZodTypeProvider,
+  serializerCompiler,
+  validatorCompiler,
+} from 'fastify-type-provider-zod';
+import { simulationRoutes } from './routes/simulationRoutes';
 
 const app = fastify({
   logger: true,
-});
+}).withTypeProvider<ZodTypeProvider>();
 
-app.get('/', async (request, reply) => {
-  return { hello: 'world, the MFO planner is running!' };
-});
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
+
+app.register(simulationRoutes);
 
 const start = async () => {
   try {

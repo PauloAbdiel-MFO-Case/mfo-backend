@@ -1,5 +1,7 @@
+CREATE SCHEMA IF NOT EXISTS "MFO";
+
 -- CreateTable
-CREATE TABLE "MFO"."Simulation" (
+CREATE TABLE "public"."Simulation" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -8,7 +10,7 @@ CREATE TABLE "MFO"."Simulation" (
 );
 
 -- CreateTable
-CREATE TABLE "MFO"."SimulationVersion" (
+CREATE TABLE "public"."SimulationVersion" (
     "id" SERIAL NOT NULL,
     "simulationId" INTEGER NOT NULL,
     "version" INTEGER NOT NULL,
@@ -21,7 +23,7 @@ CREATE TABLE "MFO"."SimulationVersion" (
 );
 
 -- CreateTable
-CREATE TABLE "MFO"."Allocation" (
+CREATE TABLE "public"."Allocation" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "type" TEXT NOT NULL,
@@ -30,7 +32,7 @@ CREATE TABLE "MFO"."Allocation" (
 );
 
 -- CreateTable
-CREATE TABLE "MFO"."AllocationRecord" (
+CREATE TABLE "public"."AllocationRecord" (
     "id" SERIAL NOT NULL,
     "allocationId" INTEGER NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
@@ -44,7 +46,7 @@ CREATE TABLE "MFO"."AllocationRecord" (
 );
 
 -- CreateTable
-CREATE TABLE "MFO"."Movement" (
+CREATE TABLE "public"."Movement" (
     "id" SERIAL NOT NULL,
     "simulationVersionId" INTEGER NOT NULL,
     "type" TEXT NOT NULL,
@@ -58,7 +60,7 @@ CREATE TABLE "MFO"."Movement" (
 );
 
 -- CreateTable
-CREATE TABLE "MFO"."Insurance" (
+CREATE TABLE "public"."Insurance" (
     "id" SERIAL NOT NULL,
     "simulationVersionId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
@@ -71,22 +73,22 @@ CREATE TABLE "MFO"."Insurance" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Simulation_name_key" ON "MFO"."Simulation"("name");
+CREATE UNIQUE INDEX "Simulation_name_key" ON "public"."Simulation"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SimulationVersion_simulationId_version_key" ON "MFO"."SimulationVersion"("simulationId", "version");
+CREATE UNIQUE INDEX "SimulationVersion_simulationId_version_key" ON "public"."SimulationVersion"("simulationId", "version");
 
 -- AddForeignKey
-ALTER TABLE "MFO"."SimulationVersion" ADD CONSTRAINT "SimulationVersion_simulationId_fkey" FOREIGN KEY ("simulationId") REFERENCES "MFO"."Simulation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."SimulationVersion" ADD CONSTRAINT "SimulationVersion_simulationId_fkey" FOREIGN KEY ("simulationId") REFERENCES "public"."Simulation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MFO"."AllocationRecord" ADD CONSTRAINT "AllocationRecord_allocationId_fkey" FOREIGN KEY ("allocationId") REFERENCES "MFO"."Allocation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."AllocationRecord" ADD CONSTRAINT "AllocationRecord_allocationId_fkey" FOREIGN KEY ("allocationId") REFERENCES "public"."Allocation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MFO"."AllocationRecord" ADD CONSTRAINT "AllocationRecord_simulationVersionId_fkey" FOREIGN KEY ("simulationVersionId") REFERENCES "MFO"."SimulationVersion"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."AllocationRecord" ADD CONSTRAINT "AllocationRecord_simulationVersionId_fkey" FOREIGN KEY ("simulationVersionId") REFERENCES "public"."SimulationVersion"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MFO"."Movement" ADD CONSTRAINT "Movement_simulationVersionId_fkey" FOREIGN KEY ("simulationVersionId") REFERENCES "MFO"."SimulationVersion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Movement" ADD CONSTRAINT "Movement_simulationVersionId_fkey" FOREIGN KEY ("simulationVersionId") REFERENCES "public"."SimulationVersion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "MFO"."Insurance" ADD CONSTRAINT "Insurance_simulationVersionId_fkey" FOREIGN KEY ("simulationVersionId") REFERENCES "MFO"."SimulationVersion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."Insurance" ADD CONSTRAINT "Insurance_simulationVersionId_fkey" FOREIGN KEY ("simulationVersionId") REFERENCES "public"."SimulationVersion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
