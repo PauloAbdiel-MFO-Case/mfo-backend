@@ -27,3 +27,13 @@ export const createAllocationRecordSchema = {
     date: z.coerce.date(),
   }),
 };
+
+export const updateAllocationRecordSchema = {
+  params: z.object({
+    recordId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    value: z.number().positive().optional(),
+    date: z.coerce.date().optional(),
+  }),
+};

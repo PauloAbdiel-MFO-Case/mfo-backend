@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { createAllocationRecordSchema, createAllocationSchema } from '../schemas/allocationSchemas';
+import { createAllocationRecordSchema, createAllocationSchema, updateAllocationRecordSchema } from '../schemas/allocationSchemas';
 import { AllocationService } from '../services/AllocationService';
 
 export async function allocationRoutes(app: FastifyInstance) {
@@ -44,6 +44,28 @@ export async function allocationRoutes(app: FastifyInstance) {
         return reply
           .status(500)
           .send({ message: 'Error adding allocation record.' });
+      }
+    },
+  );
+
+   app.put(
+    '/allocation-records/:recordId',
+    { schema: updateAllocationRecordSchema },
+    async (request: any, reply) => {
+      try {
+        const { recordId } : any = request.params;
+        const updatedRecord = await AllocationService.updateRecord(
+          recordId,
+          request.body,
+        );
+        return reply.send(updatedRecord);
+      } catch (error: any) {
+        if (error.code === 'P2025') {
+          return reply.status(404).send({ message: 'Record not found.' });
+        }
+        return reply
+          .status(500)
+          .send({ message: 'Error updating allocation record.' });
       }
     },
   );

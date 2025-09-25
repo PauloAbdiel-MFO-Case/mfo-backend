@@ -42,8 +42,18 @@ async function addRecord(data: Prisma.AllocationRecordUncheckedCreateInput) {
   return record;
 }
 
+async function updateRecord(id: number, data: Prisma.AllocationRecordUpdateInput) {
+  const record = await prisma.allocationRecord.update({
+    where: { id },
+    data,
+  });
+  return record;
+}
+
+
 
 export const AllocationRepository = {
   create,
-  addRecord
+  addRecord,
+  updateRecord
 };

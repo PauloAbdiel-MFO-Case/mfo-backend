@@ -18,7 +18,16 @@ async function addRecord(
   return newRecord;
 }
 
+async function updateRecord(
+  id: number,
+  data: { value?: number; date?: Date },
+) {
+  const updatedRecord = await AllocationRepository.updateRecord(id, data);
+  return updatedRecord;
+}
+
 export const AllocationService = {
   create,
-  addRecord
+  addRecord,
+  updateRecord
 };
