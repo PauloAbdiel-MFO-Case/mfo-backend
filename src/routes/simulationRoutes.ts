@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { ProjectionService } from '../services/ProjectionService';
-import { createSimulationSchema, deleteSimulationSchema, getProjectionSchema } from '../schemas/simulationSchemas';
+import { createSimulationSchema, deleteSimulationSchema, getProjectionSchema, updateSimulationSchema } from '../schemas/simulationSchemas';
 import { SimulationService } from 'src/services/SimulationService';
 
 export async function simulationRoutes(app: FastifyInstance) {
@@ -19,7 +19,7 @@ export async function simulationRoutes(app: FastifyInstance) {
     { schema: deleteSimulationSchema },
     async (request, reply) => {
       try {
-        const { id } = request.params;
+        const { id }: any = request.params;
         await SimulationService.deleteById(id);
         // O código 204 significa "No Content", a resposta padrão para um DELETE bem-sucedido.
         return reply.status(204).send();
@@ -46,8 +46,8 @@ export async function simulationRoutes(app: FastifyInstance) {
     async (request, reply) => {
       try {
         // CORREÇÃO AQUI: Apenas desestruture. Os tipos já são conhecidos.
-        const { id } = request.params;
-        const { status } = request.query;
+        const { id }: any = request.params;
+        const { status }: any = request.query;
 
         const projection = await ProjectionService.execute({
           simulationVersionId: id,
@@ -85,6 +85,31 @@ export async function simulationRoutes(app: FastifyInstance) {
         return reply
           .status(500)
           .send({ message: 'Error creating new simulation.' });
+      }
+    },
+  );
+
+  app.put(
+    '/simulations/versions/:versionId',
+    { schema: updateSimulationSchema },
+    async (request: any, reply) => {
+      try {
+        const { versionId }: any = request.params;
+        const updatedVersion = await SimulationService.update(
+          versionId,
+          request.body,
+        );
+        return reply.send(updatedVersion);
+      } catch (error: any) {
+        if (error.message.includes('Situação Atual')) {
+          return reply.status(400).send({ message: error.message });
+        }
+        if (error.code === 'P2025') {
+          return reply.status(404).send({ message: 'Simulation version not found.' });
+        }
+        return reply
+          .status(500)
+          .send({ message: 'Error updating simulation.' });
       }
     },
   );

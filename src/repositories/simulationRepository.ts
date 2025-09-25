@@ -1,4 +1,5 @@
-import { DetailedSimulationVersion } from 'src/types/projection.types';
+
+import { DetailedSimulationVersion, SimulationUpdateData } from 'src/types/simulation.types';
 import { prisma } from '../prisma/client';
 import { Prisma } from '@prisma/client';
 
@@ -73,7 +74,7 @@ async function createFromVersion(
             startDate: sourceVersion.startDate,
             realInterestRate: sourceVersion.realInterestRate,
             movements: {
-              create: sourceVersion.movements.map((m) => ({ 
+              create: sourceVersion.movements.map((m: any) => ({ 
                 type: m.type,
                 description: m.description,
                 value: m.value,
@@ -83,7 +84,7 @@ async function createFromVersion(
               })),
             },
             allocationRecords: {
-              create: sourceVersion.allocationRecords.map((ar) => ({ 
+              create: sourceVersion.allocationRecords.map((ar: any) => ({ 
                 allocationId: ar.allocationId,
                 value: ar.value,
                 date: ar.date,
@@ -93,7 +94,7 @@ async function createFromVersion(
               })),
             },
             insurances: {
-              create: sourceVersion.insurances.map((i) => ({ 
+              create: sourceVersion.insurances.map((i: any) => ({ 
                 name: i.name,
                 startDate: i.startDate,
                 durationMonths: i.durationMonths,
@@ -114,11 +115,42 @@ async function createFromVersion(
   return newSimulation;
 }
 
+async function updateVersion(id: number, data: SimulationUpdateData) {
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const versionToUpdate = await tx.simulationVersion.findUniqueOrThrow({
+      where: { id },
+      include: { simulation: true },
+    });
+
+    if (versionToUpdate.simulation.name === 'Situação Atual') {
+      throw new Error('The name and date of "Situação Atual" cannot be changed.');
+    }
+
+    if (data.name && data.name !== versionToUpdate.simulation.name) {
+      await tx.simulation.update({
+        where: { id: versionToUpdate.simulationId },
+        data: { name: data.name },
+      });
+    }
+
+    const updatedVersion = await tx.simulationVersion.update({
+      where: { id },
+      data: {
+        startDate: data.startDate,
+        realInterestRate: data.realInterestRate,
+      },
+    });
+
+    return updatedVersion;
+  });
+}
+
 
 export const SimulationRepository = {
   findVersionByIdWithDetails,
   findAllLatestVersions,
   deleteVersionById,
   findByName,
-  createFromVersion
+  createFromVersion,
+  updateVersion
 };

@@ -1,3 +1,4 @@
+import { SimulationUpdateData } from 'src/types/simulation.types';
 import { SimulationRepository } from '../repositories/simulationRepository';
 
 async function createFromVersion(sourceVersionId: number, newName: string ) {
@@ -13,7 +14,10 @@ async function createFromVersion(sourceVersionId: number, newName: string ) {
 
     const newSimulation = await SimulationRepository.createFromVersion(sourceVersion, newName);
     return newSimulation;
-    
+}
+
+async function update(id: number, data: SimulationUpdateData) {
+  return SimulationRepository.updateVersion(id, data);
 }
 
 async function listAll() {
@@ -28,5 +32,6 @@ async function deleteById(id: number) {
 export const SimulationService = {
   listAll,
   deleteById,
-  createFromVersion
+  createFromVersion,
+  update
 };
