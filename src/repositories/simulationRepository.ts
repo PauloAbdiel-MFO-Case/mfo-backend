@@ -1,3 +1,4 @@
+import { DetailedSimulationVersion } from 'src/types/projection.types';
 import { prisma } from '../prisma/client';
 
 async function findVersionByIdWithDetails(id: number) {
@@ -10,6 +11,7 @@ async function findVersionByIdWithDetails(id: number) {
           allocation: true,
         },
       },
+      insurances: true,
     },
   });
   return simulationVersion;
@@ -55,9 +57,67 @@ async function findByName(name: string) {
   return simulation;
 }
 
+async function createFromVersion(
+  sourceVersion: DetailedSimulationVersion,
+  newName: string,
+) {
+  const newSimulation = await prisma.$transaction(async (tx) => {
+    const createdSim = await tx.simulation.create({
+      data: {
+        name: newName,
+        versions: {
+          create: {
+            version: 1,
+            isLatest: true,
+            startDate: sourceVersion.startDate,
+            realInterestRate: sourceVersion.realInterestRate,
+            movements: {
+              create: sourceVersion.movements.map((m) => ({ 
+                type: m.type,
+                description: m.description,
+                value: m.value,
+                frequency: m.frequency,
+                startDate: m.startDate,
+                endDate: m.endDate,
+              })),
+            },
+            allocationRecords: {
+              create: sourceVersion.allocationRecords.map((ar) => ({ 
+                allocationId: ar.allocationId,
+                value: ar.value,
+                date: ar.date,
+                initialPayment: ar.initialPayment,
+                installments: ar.installments,
+                interestRate: ar.interestRate,
+              })),
+            },
+            insurances: {
+              create: sourceVersion.insurances.map((i) => ({ 
+                name: i.name,
+                startDate: i.startDate,
+                durationMonths: i.durationMonths,
+                monthlyPremium: i.monthlyPremium,
+                insuredValue: i.insuredValue,
+              })),
+            },
+          },
+        },
+      },
+      include: {
+        versions: true,
+      },
+    });
+    return createdSim;
+  });
+
+  return newSimulation;
+}
+
+
 export const SimulationRepository = {
   findVersionByIdWithDetails,
   findAllLatestVersions,
   deleteVersionById,
   findByName,
+  createFromVersion
 };

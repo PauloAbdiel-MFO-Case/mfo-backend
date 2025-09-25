@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { ProjectionService } from '../services/ProjectionService';
-import { deleteSimulationSchema, getProjectionSchema } from '../schemas/simulationSchemas';
+import { createSimulationSchema, deleteSimulationSchema, getProjectionSchema } from '../schemas/simulationSchemas';
 import { SimulationService } from 'src/services/SimulationService';
 
 export async function simulationRoutes(app: FastifyInstance) {
@@ -60,6 +60,31 @@ export async function simulationRoutes(app: FastifyInstance) {
         return reply
           .status(404)
           .send({ message: 'Simulation not found or an error occurred.' });
+      }
+    },
+  );
+
+  app.post(
+    '/simulations',
+    { schema: createSimulationSchema },
+    async (request, reply) => {
+      try {
+        const { sourceVersionId, newName } : any = request.body;
+        const newSimulation = await SimulationService.createFromVersion(
+          sourceVersionId,
+          newName,
+        );
+        // Retorna 201 Created com o novo objeto
+        return reply.status(201).send(newSimulation);
+      } catch (error: any) {
+        app.log.error(error);
+        // Se o nome já existe, retorna 409 Conflict
+        if (error.message.includes('already exists')) {
+          return reply.status(409).send({ message: error.message });
+        }
+        return reply
+          .status(500)
+          .send({ message: 'Error creating new simulation.' });
       }
     },
   );
