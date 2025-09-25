@@ -29,9 +29,14 @@ async function deleteById(id: number) {
   await SimulationRepository.deleteVersionById(id);
 }
 
+async function createNewVersion(simulationId: number) {
+  return SimulationRepository.createNewVersion(simulationId);
+}
+
 export const SimulationService = {
   listAll,
   deleteById,
   createFromVersion,
-  update
+  update,
+  createNewVersion
 };

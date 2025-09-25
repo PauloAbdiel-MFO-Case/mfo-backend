@@ -145,6 +145,75 @@ async function updateVersion(id: number, data: SimulationUpdateData) {
   });
 }
 
+async function createNewVersion(simulationId: number) {
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    // 1. Encontra a versão mais recente atual para copiar
+    const latestVersion = await tx.simulationVersion.findFirstOrThrow({
+      where: {
+        simulationId: simulationId,
+        isLatest: true,
+      },
+      include: {
+        movements: true,
+        allocationRecords: true,
+        insurances: true,
+      },
+    });
+
+    // 2. Desmarca a versão antiga como a mais recente
+    await tx.simulationVersion.update({
+      where: {
+        id: latestVersion.id,
+      },
+      data: {
+        isLatest: false,
+      },
+    });
+
+    // 3. Cria a nova versão, copiando os dados e incrementando a versão
+    const newVersion = await tx.simulationVersion.create({
+      data: {
+        simulationId: simulationId,
+        version: latestVersion.version + 1,
+        isLatest: true,
+        startDate: latestVersion.startDate,
+        realInterestRate: latestVersion.realInterestRate,
+        movements: {
+          create: latestVersion.movements.map((m: any) => ({
+            type: m.type,
+            description: m.description,
+            value: m.value,
+            frequency: m.frequency,
+            startDate: m.startDate,
+            endDate: m.endDate,
+          })),
+        },
+        allocationRecords: {
+          create: latestVersion.allocationRecords.map((ar: any) => ({
+            allocationId: ar.allocationId,
+            value: ar.value,
+            date: ar.date,
+            initialPayment: ar.initialPayment,
+            installments: ar.installments,
+            interestRate: ar.interestRate,
+          })),
+        },
+        insurances: {
+          create: latestVersion.insurances.map((i: any) => ({
+            name: i.name,
+            startDate: i.startDate,
+            durationMonths: i.durationMonths,
+            monthlyPremium: i.monthlyPremium,
+            insuredValue: i.insuredValue,
+          })),
+        },
+      },
+    });
+
+    return newVersion;
+  });
+}
+
 
 export const SimulationRepository = {
   findVersionByIdWithDetails,
@@ -152,5 +221,6 @@ export const SimulationRepository = {
   deleteVersionById,
   findByName,
   createFromVersion,
-  updateVersion
+  updateVersion,
+  createNewVersion
 };

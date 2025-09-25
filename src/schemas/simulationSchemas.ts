@@ -32,3 +32,9 @@ export const updateSimulationSchema = {
     realInterestRate: z.number().positive().optional(),
   }),
 };
+
+export const createNewVersionSchema = {
+  params: z.object({
+    simulationId: z.coerce.number().int().positive(),
+  }),
+};

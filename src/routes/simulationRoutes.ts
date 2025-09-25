@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { ProjectionService } from '../services/ProjectionService';
-import { createSimulationSchema, deleteSimulationSchema, getProjectionSchema, updateSimulationSchema } from '../schemas/simulationSchemas';
+import { createNewVersionSchema, createSimulationSchema, deleteSimulationSchema, getProjectionSchema, updateSimulationSchema } from '../schemas/simulationSchemas';
 import { SimulationService } from 'src/services/SimulationService';
 
 export async function simulationRoutes(app: FastifyInstance) {
@@ -110,6 +110,25 @@ export async function simulationRoutes(app: FastifyInstance) {
         return reply
           .status(500)
           .send({ message: 'Error updating simulation.' });
+      }
+    },
+  );
+
+   app.post(
+    '/simulations/:simulationId/versions',
+    { schema: createNewVersionSchema },
+    async (request, reply) => {
+      try {
+        const { simulationId } : any = request.params;
+        const newVersion = await SimulationService.createNewVersion(simulationId);
+        return reply.status(201).send(newVersion);
+      } catch (error: any) {
+        if (error.code === 'P2025') {
+          return reply.status(404).send({ message: 'Simulation not found.' });
+        }
+        return reply
+          .status(500)
+          .send({ message: 'Error creating new version.' });
       }
     },
   );
