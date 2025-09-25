@@ -30,9 +30,19 @@ async function deleteRecord(id: number) {
   await AllocationRepository.deleteRecord(id);
 }
 
+async function findByVersionId(versionId: number) {
+  return AllocationRepository.findByVersionId(versionId);
+}
+
+async function findAll(){
+  return AllocationRepository.findAll();
+}
+
 export const AllocationService = {
   create,
   addRecord,
   updateRecord,
-  deleteRecord
+  deleteRecord,
+  findByVersionId,
+  findAll
 };

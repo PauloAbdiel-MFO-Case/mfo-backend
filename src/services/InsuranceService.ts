@@ -14,8 +14,18 @@ async function deleteById(id: number) {
   return InsuranceRepository.deleteById(id);
 }
 
+async function findByVersionId(versionId: number) {
+  return InsuranceRepository.findByVersionId(versionId);
+}
+
+async function findAll() {
+  return InsuranceRepository.findAll();
+}
+
 export const InsuranceService = {
   create,
   update,
   deleteById,
+  findByVersionId,
+  findAll,
 };

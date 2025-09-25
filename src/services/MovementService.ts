@@ -26,8 +26,18 @@ async function deleteById(id: number) {
   await MovementRepository.deleteById(id);
 }
 
+async function findByVersionId(versionId: number) {
+  return MovementRepository.findByVersionId(versionId);
+}
+
+async function findAll() {
+  return MovementRepository.findAll();
+}
+
 export const MovementService = {
   create,
   update,
-  deleteById
+  deleteById,
+  findByVersionId,
+  findAll
 };

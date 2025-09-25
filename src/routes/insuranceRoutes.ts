@@ -5,6 +5,7 @@ import {
   updateInsuranceSchema,
 } from '../schemas/insuranceSchemas';
 import { InsuranceService } from '../services/InsuranceService';
+import { getSimulationVersionSchema } from 'src/schemas/simulationSchemas';
 
 export async function insuranceRoutes(app: FastifyInstance) {
   app.post(
@@ -54,6 +55,35 @@ export async function insuranceRoutes(app: FastifyInstance) {
           return reply.status(404).send({ message: 'Insurance not found.' });
         }
         return reply.status(500).send({ message: 'Error deleting insurance.' });
+      }
+    },
+  );
+
+  app.get(
+    '/versions/:versionId/insurances',
+    { schema: getSimulationVersionSchema }, 
+    async (request, reply) => {
+      try {
+        const { versionId } : any = request.params;
+        const insurances = await InsuranceService.findByVersionId(versionId);
+        return reply.send(insurances);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({ message: 'Error fetching insurances.' });
+      }
+    },
+  );
+
+  app.get(
+    '/insurances',
+    async (request, reply) => {
+      try {
+        const { versionId } : any = request.params;
+        const insurances = await InsuranceService.findAll();
+        return reply.send(insurances);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({ message: 'Error fetching insurances.' });
       }
     },
   );

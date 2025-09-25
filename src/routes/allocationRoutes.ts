@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { createAllocationRecordSchema, createAllocationSchema, deleteAllocationRecordSchema, updateAllocationRecordSchema } from '../schemas/allocationSchemas';
 import { AllocationService } from '../services/AllocationService';
+import { getSimulationVersionSchema } from 'src/schemas/simulationSchemas';
 
 export async function allocationRoutes(app: FastifyInstance) {
   app.post(
@@ -85,6 +86,34 @@ export async function allocationRoutes(app: FastifyInstance) {
         return reply
           .status(500)
           .send({ message: 'Error deleting allocation record.' });
+      }
+    },
+  );
+
+  app.get(
+    '/versions/:versionId/allocation-records',
+    { schema: getSimulationVersionSchema },
+    async (request, reply) => {
+      try {
+        const { versionId } : any = request.params;
+        const records = await AllocationService.findByVersionId(versionId);
+        return reply.send(records);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({ message: 'Error fetching allocation records.' });
+      }
+    },
+  );
+
+  app.get(
+    '/allocations',
+    async (request, reply) => {
+      try {
+        const records = await AllocationService.findAll();
+        return reply.send(records);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({ message: 'Error fetching all allocation records.' });
       }
     },
   );

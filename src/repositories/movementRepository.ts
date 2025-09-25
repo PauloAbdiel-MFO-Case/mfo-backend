@@ -22,8 +22,20 @@ async function deleteById(id: number) {
   });
 }
 
+async function findByVersionId(versionId: number) {
+  return prisma.movement.findMany({
+    where: { simulationVersionId: versionId },
+  });
+}
+
+async function findAll() {
+  return prisma.movement.findMany(); 
+}
+
 export const MovementRepository = {
   create,
   update,
-  deleteById
+  deleteById,
+  findByVersionId,
+  findAll
 };

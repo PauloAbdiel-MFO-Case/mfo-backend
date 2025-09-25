@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { createMovementSchema, deleteMovementSchema, updateMovementSchema } from '../schemas/movementSchemas';
 import { MovementService } from '../services/MovementService';
+import { getSimulationVersionSchema } from 'src/schemas/simulationSchemas';
 
 export async function movementRoutes(app: FastifyInstance) {
   app.post(
@@ -54,6 +55,34 @@ export async function movementRoutes(app: FastifyInstance) {
           return reply.status(404).send({ message: 'Movement not found.' });
         }
         return reply.status(500).send({ message: 'Error deleting movement.' });
+      }
+    },
+  );
+
+  app.get(
+    '/versions/:versionId/movements',
+    { schema: getSimulationVersionSchema }, 
+    async (request, reply) => {
+      try {
+        const { versionId }: any = request.params;
+        const movements = await MovementService.findByVersionId(versionId);
+        return reply.send(movements);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({ message: 'Error fetching movements.' });
+      }
+    },
+  );
+
+  app.get(
+    '/movements', 
+    async (request: any, reply) => {
+      try {
+        const movements = await MovementService.findAll();
+        return reply.send(movements);
+      } catch (error) {
+        app.log.error(error);
+        return reply.status(500).send({ message: 'Error fetching all movements.' });
       }
     },
   );

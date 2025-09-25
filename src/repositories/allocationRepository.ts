@@ -56,9 +56,24 @@ async function deleteRecord(id: number) {
   });
 }
 
+async function findByVersionId(versionId: number) {
+  return prisma.allocationRecord.findMany({
+    where: { simulationVersionId: versionId },
+    include: { allocation: true },
+  });
+}
+
+async function findAll(){
+  return prisma.allocation.findMany({
+    include: { records: true },
+  });
+}
+
 export const AllocationRepository = {
   create,
   addRecord,
   updateRecord,
-  deleteRecord
+  deleteRecord,
+  findByVersionId,
+  findAll,
 };
