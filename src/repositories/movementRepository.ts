@@ -8,6 +8,15 @@ async function create(data: Prisma.MovementUncheckedCreateInput) {
   return movement;
 }
 
+async function update(id: number, data: Prisma.MovementUpdateInput) {
+  const movement = await prisma.movement.update({
+    where: { id },
+    data,
+  });
+  return movement;
+}
+
 export const MovementRepository = {
   create,
+  update
 };

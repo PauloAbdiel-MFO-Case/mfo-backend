@@ -14,6 +14,15 @@ async function create(
   return movement;
 }
 
+async function update(
+  id: number,
+  data: Prisma.MovementUpdateInput,
+) {
+  const movement = await MovementRepository.update(id, data);
+  return movement;
+}
+
 export const MovementService = {
   create,
+  update
 };
