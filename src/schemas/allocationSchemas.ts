@@ -15,3 +15,15 @@ export const createAllocationSchema = {
     interestRate: z.number().positive().optional(),
   }),
 };
+
+export const createAllocationRecordSchema = {
+  params: z.object({
+    allocationId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    // Precisamos saber a qual versão da simulação este novo registro pertence
+    simulationVersionId: z.number().int().positive(),
+    value: z.number().positive(),
+    date: z.coerce.date(),
+  }),
+};

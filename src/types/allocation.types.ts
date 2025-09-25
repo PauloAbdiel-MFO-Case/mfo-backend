@@ -7,3 +7,9 @@ export type AllocationCreationData = {
   installments?: number;
   interestRate?: number;
 };
+
+export type AllocationRecordCreationData = {
+  simulationVersionId: number;
+  value: number;
+  date: Date;
+};

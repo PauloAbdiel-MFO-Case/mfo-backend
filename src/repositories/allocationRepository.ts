@@ -20,7 +20,7 @@ async function create(
         type,
       },
     });
-    
+
     await tx.allocationRecord.create({
       data: {
         allocationId: allocation.id,
@@ -35,6 +35,15 @@ async function create(
   });
 }
 
+async function addRecord(data: Prisma.AllocationRecordUncheckedCreateInput) {
+  const record = await prisma.allocationRecord.create({
+    data,
+  });
+  return record;
+}
+
+
 export const AllocationRepository = {
   create,
+  addRecord
 };
