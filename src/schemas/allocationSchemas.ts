@@ -1,0 +1,17 @@
+import { z } from 'zod';
+
+export const createAllocationSchema = {
+  params: z.object({
+    versionId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    name: z.string().min(1),
+    type: z.enum(['FINANCEIRA', 'IMOBILIZADA']),
+    value: z.number().positive(),
+    date: z.coerce.date(),
+    // Campos opcionais para financiamento 
+    initialPayment: z.number().optional(),
+    installments: z.number().int().positive().optional(),
+    interestRate: z.number().positive().optional(),
+  }),
+};

@@ -7,6 +7,7 @@ import {
 } from 'fastify-type-provider-zod';
 import { simulationRoutes } from './routes/simulationRoutes';
 import { movementRoutes } from './routes/movementRoutes';
+import { allocationRoutes } from './routes/allocationRoutes';
 
 const app = fastify({
   logger: true,
@@ -17,6 +18,7 @@ app.setSerializerCompiler(serializerCompiler);
 
 app.register(simulationRoutes);
 app.register(movementRoutes);
+app.register(allocationRoutes);
 
 const start = async () => {
   try {

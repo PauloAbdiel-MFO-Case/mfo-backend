@@ -1,5 +1,6 @@
 import { DetailedSimulationVersion } from 'src/types/projection.types';
 import { prisma } from '../prisma/client';
+import { Prisma } from '@prisma/client';
 
 async function findVersionByIdWithDetails(id: number) {
   const simulationVersion = await prisma.simulationVersion.findUniqueOrThrow({
@@ -61,7 +62,7 @@ async function createFromVersion(
   sourceVersion: DetailedSimulationVersion,
   newName: string,
 ) {
-  const newSimulation = await prisma.$transaction(async (tx) => {
+  const newSimulation = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const createdSim = await tx.simulation.create({
       data: {
         name: newName,
