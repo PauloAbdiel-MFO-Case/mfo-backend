@@ -43,3 +43,19 @@ export const deleteAllocationRecordSchema = {
     recordId: z.coerce.number().int().positive(),
   }),
 };
+
+export const updateAllocationSchema = {
+  params: z.object({
+    allocationId: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    name: z.string().min(1).optional(),
+    type: z.enum(['FINANCEIRA', 'IMOBILIZADA']).optional(),
+  }),
+};
+
+export const deleteAllocationSchema = {
+  params: z.object({
+    allocationId: z.coerce.number().int().positive(),
+  }),
+};

@@ -41,11 +41,16 @@ async function findVersionById(id: number) {
   return version;
 }
 
+async function listAllWithVersions() {
+  return SimulationRepository.findAllWithVersions();
+}
+
 export const SimulationService = {
   listAll,
   deleteById,
   createFromVersion,
   update,
   createNewVersion,
-  findVersionById
+  findVersionById,
+  listAllWithVersions,
 };

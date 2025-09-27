@@ -1,3 +1,4 @@
+'use client';
 
 import { DetailedSimulationVersion, SimulationUpdateData } from 'src/types/simulation.types';
 import { prisma } from '../prisma/client';
@@ -56,18 +57,42 @@ async function findByName(name: string) {
   const simulation = await prisma.simulation.findUnique({
     where: { name },
   });
-  return simulation;
+  return !!simulation;
 }
 
 async function findVersionById(id: number) {
-  return SimulationRepository.findVersionByIdWithDetails(id);
+  return prisma.simulationVersion.findUniqueOrThrow({
+    where: { id },
+    include: {
+      simulation: true,
+      movements: true,
+      allocationRecords: {
+        include: {
+          allocation: true,
+        },
+      },
+      insurances: true,
+    },
+  });
+}
+
+async function findAllWithVersions() {
+  return prisma.simulation.findMany({
+    include: {
+      versions: {
+        orderBy: {
+          version: 'asc',
+        },
+      },
+    },
+  });
 }
 
 async function createFromVersion(
   sourceVersion: DetailedSimulationVersion,
   newName: string,
 ) {
-  const newSimulation = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  const newSimulation = await prisma.$transaction(async (tx) => {
     const createdSim = await tx.simulation.create({
       data: {
         name: newName,
@@ -78,7 +103,7 @@ async function createFromVersion(
             startDate: sourceVersion.startDate,
             realInterestRate: sourceVersion.realInterestRate,
             movements: {
-              create: sourceVersion.movements.map((m: any) => ({ 
+              create: sourceVersion.movements.map((m) => ({
                 type: m.type,
                 description: m.description,
                 value: m.value,
@@ -88,7 +113,7 @@ async function createFromVersion(
               })),
             },
             allocationRecords: {
-              create: sourceVersion.allocationRecords.map((ar: any) => ({ 
+              create: sourceVersion.allocationRecords.map((ar) => ({
                 allocationId: ar.allocationId,
                 value: ar.value,
                 date: ar.date,
@@ -98,7 +123,7 @@ async function createFromVersion(
               })),
             },
             insurances: {
-              create: sourceVersion.insurances.map((i: any) => ({ 
+              create: sourceVersion.insurances.map((i) => ({
                 name: i.name,
                 startDate: i.startDate,
                 durationMonths: i.durationMonths,
@@ -120,7 +145,7 @@ async function createFromVersion(
 }
 
 async function updateVersion(id: number, data: SimulationUpdateData) {
-  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  return prisma.$transaction(async (tx) => {
     const versionToUpdate = await tx.simulationVersion.findUniqueOrThrow({
       where: { id },
       include: { simulation: true },
@@ -129,29 +154,8 @@ async function updateVersion(id: number, data: SimulationUpdateData) {
     if (versionToUpdate.simulation.name === 'Situação Atual') {
       throw new Error('The name and date of "Situação Atual" cannot be changed.');
     }
-    
+
     if (data.name && data.name !== versionToUpdate.simulation.name) {
-      const otherSimulation = await tx.simulation.findUnique({
-        where: { name: data.name },
-      });
-
-      if (otherSimulation) {
-        const isCurrentSimulationOlder =
-          versionToUpdate.simulation.createdAt < otherSimulation.createdAt;
-
-        if (isCurrentSimulationOlder) {
-          await tx.simulationVersion.update({
-            where: { id: versionToUpdate.id },
-            data: { isLegacy: true },
-          });
-        } else {
-          await tx.simulationVersion.updateMany({
-            where: { simulationId: otherSimulation.id, isLatest: true },
-            data: { isLegacy: true },
-          });
-        }
-      }
-      
       await tx.simulation.update({
         where: { id: versionToUpdate.simulationId },
         data: { name: data.name },
@@ -171,8 +175,7 @@ async function updateVersion(id: number, data: SimulationUpdateData) {
 }
 
 async function createNewVersion(simulationId: number) {
-  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    // 1. Encontra a versão mais recente atual para copiar
+  return prisma.$transaction(async (tx) => {
     const latestVersion = await tx.simulationVersion.findFirstOrThrow({
       where: {
         simulationId: simulationId,
@@ -185,7 +188,6 @@ async function createNewVersion(simulationId: number) {
       },
     });
 
-    // 2. Desmarca a versão antiga como a mais recente
     await tx.simulationVersion.update({
       where: {
         id: latestVersion.id,
@@ -195,7 +197,6 @@ async function createNewVersion(simulationId: number) {
       },
     });
 
-    // 3. Cria a nova versão, copiando os dados e incrementando a versão
     const newVersion = await tx.simulationVersion.create({
       data: {
         simulationId: simulationId,
@@ -204,7 +205,7 @@ async function createNewVersion(simulationId: number) {
         startDate: latestVersion.startDate,
         realInterestRate: latestVersion.realInterestRate,
         movements: {
-          create: latestVersion.movements.map((m: any) => ({
+          create: latestVersion.movements.map((m) => ({
             type: m.type,
             description: m.description,
             value: m.value,
@@ -214,7 +215,7 @@ async function createNewVersion(simulationId: number) {
           })),
         },
         allocationRecords: {
-          create: latestVersion.allocationRecords.map((ar: any) => ({
+          create: latestVersion.allocationRecords.map((ar) => ({
             allocationId: ar.allocationId,
             value: ar.value,
             date: ar.date,
@@ -224,7 +225,7 @@ async function createNewVersion(simulationId: number) {
           })),
         },
         insurances: {
-          create: latestVersion.insurances.map((i: any) => ({
+          create: latestVersion.insurances.map((i) => ({
             name: i.name,
             startDate: i.startDate,
             durationMonths: i.durationMonths,
@@ -239,7 +240,6 @@ async function createNewVersion(simulationId: number) {
   });
 }
 
-
 export const SimulationRepository = {
   findVersionByIdWithDetails,
   findAllLatestVersions,
@@ -248,5 +248,6 @@ export const SimulationRepository = {
   createFromVersion,
   updateVersion,
   createNewVersion,
-  findVersionById
+  findVersionById,
+  findAllWithVersions,
 };

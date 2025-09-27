@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { createAllocationRecordSchema, createAllocationSchema, deleteAllocationRecordSchema, updateAllocationRecordSchema } from '../schemas/allocationSchemas';
+import { createAllocationRecordSchema, createAllocationSchema, deleteAllocationRecordSchema, deleteAllocationSchema, updateAllocationRecordSchema, updateAllocationSchema } from '../schemas/allocationSchemas';
 import { AllocationService } from '../services/AllocationService';
 import { getSimulationVersionSchema } from 'src/schemas/simulationSchemas';
 

@@ -1,9 +1,18 @@
 import { AllocationCreationData, AllocationRecordCreationData } from 'src/types/allocation.types';
 import { AllocationRepository } from '../repositories/allocationRepository';
+import { Prisma } from '@prisma/client';
 
 async function create(versionId: number, data: AllocationCreationData) {
   const allocation = await AllocationRepository.create(versionId, data);
   return allocation;
+}
+
+async function update(id: number, data: Prisma.AllocationUpdateInput) {
+  return AllocationRepository.update(id, data);
+}
+
+async function deleteById(id: number) {
+  return AllocationRepository.deleteById(id);
 }
 
 async function addRecord(
@@ -40,6 +49,8 @@ async function findAll(){
 
 export const AllocationService = {
   create,
+  update,
+  deleteById,
   addRecord,
   updateRecord,
   deleteRecord,

@@ -153,4 +153,14 @@ export async function simulationRoutes(app: FastifyInstance) {
       }
     },
   );
+
+  app.get('/simulations/history', async (request, reply) => {
+    try {
+      const history = await SimulationService.listAllWithVersions();
+      return reply.send(history);
+    } catch (error) {
+      app.log.error(error);
+      return reply.status(500).send({ message: 'Error fetching simulation history.' });
+    }
+  });
 }

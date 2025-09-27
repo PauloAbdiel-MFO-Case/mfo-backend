@@ -13,7 +13,7 @@ async function create(
 ) {
   const { name, type, value, date, ...financingData } = data;
 
-  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  return prisma.$transaction(async (tx) => {
     const allocation = await tx.allocation.create({
       data: {
         name,
@@ -32,6 +32,19 @@ async function create(
     });
 
     return allocation;
+  });
+}
+
+async function update(id: number, data: Prisma.AllocationUpdateInput) {
+  return prisma.allocation.update({
+    where: { id },
+    data,
+  });
+}
+
+async function deleteById(id: number) {
+  return prisma.allocation.delete({
+    where: { id },
   });
 }
 
@@ -71,6 +84,8 @@ async function findAll(){
 
 export const AllocationRepository = {
   create,
+  update,
+  deleteById,
   addRecord,
   updateRecord,
   deleteRecord,
