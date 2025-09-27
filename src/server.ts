@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import 'dotenv/config';
+import cors from '@fastify/cors';
 import {
   ZodTypeProvider,
   serializerCompiler,
@@ -16,6 +17,10 @@ const app = fastify({
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+
+app.register(cors, {
+  origin: 'http://localhost:3000', 
+});
 
 app.register(simulationRoutes);
 app.register(movementRoutes);
