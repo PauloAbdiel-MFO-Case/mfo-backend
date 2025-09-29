@@ -55,12 +55,18 @@ model Movement {
   id                  Int               @id @default(autoincrement())
   simulationVersion   SimulationVersion @relation(fields: [simulationVersionId], references: [id], onDelete: Cascade)
   simulationVersionId Int
-  type                String
+  type                MovementType
   description         String
   value               Float
   frequency           String
   startDate           DateTime
   endDate             DateTime?
+}
+
+enum MovementType {
+  ENTRADA
+  SAIDA
+  IMOBILIZADA
 }
 
 model Insurance {

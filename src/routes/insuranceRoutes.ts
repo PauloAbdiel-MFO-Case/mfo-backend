@@ -5,7 +5,7 @@ import {
   updateInsuranceSchema,
 } from '../schemas/insuranceSchemas';
 import { InsuranceService } from '../services/InsuranceService';
-import { getSimulationVersionSchema } from 'src/schemas/simulationSchemas';
+import { getSimulationVersionSchema } from '../schemas/simulationSchemas';
 
 export async function insuranceRoutes(app: FastifyInstance) {
   app.post(

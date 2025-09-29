@@ -1,5 +1,6 @@
 import { SimulationUpdateData } from 'src/types/simulation.types';
 import { SimulationRepository } from '../repositories/simulationRepository';
+import { ProjectionService } from './ProjectionService';
 
 async function createFromVersion(sourceVersionId: number, newName: string ) {
     const existing: boolean = await SimulationRepository.findByName(newName);
@@ -42,7 +43,26 @@ async function findVersionById(id: number) {
 }
 
 async function listAllWithVersions() {
-  return SimulationRepository.findAllWithVersions();
+  const simulations = await SimulationRepository.findAllWithVersions();
+
+  const simulationsWithPatrimony = await Promise.all(simulations.map(async (sim: any) => {
+    const versionsWithPatrimony = await Promise.all(sim.versions.map(async (version: any) => {
+      try {
+        const projection = await ProjectionService.execute({
+          simulationVersionId: version.id,
+          status: 'Vivo', // Assuming 'Vivo' for history display
+        });
+        const finalPatrimony = projection.withInsurance[projection.withInsurance.length - 1]?.totalPatrimony || 0;
+        return { ...version, finalPatrimony };
+      } catch (error) {
+        console.error(`Error calculating patrimony for version ${version.id}:`, error);
+        return { ...version, finalPatrimony: 0 }; // Return with 0 if calculation fails
+      }
+    }));
+    return { ...sim, versions: versionsWithPatrimony };
+  }));
+
+  return simulationsWithPatrimony;
 }
 
 export const SimulationService = {

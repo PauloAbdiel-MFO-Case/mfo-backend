@@ -6,6 +6,7 @@ export const getProjectionSchema = {
   }),
   querystring: z.object({
     status: z.enum(['Vivo', 'Morto']),
+    calculateWithoutInsurance: z.coerce.boolean().optional(),
   }),
 };
 

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { createAllocationRecordSchema, createAllocationSchema, deleteAllocationRecordSchema, deleteAllocationSchema, updateAllocationRecordSchema, updateAllocationSchema } from '../schemas/allocationSchemas';
 import { AllocationService } from '../services/AllocationService';
-import { getSimulationVersionSchema } from 'src/schemas/simulationSchemas';
+import { getSimulationVersionSchema } from '../schemas/simulationSchemas';
 
 export async function allocationRoutes(app: FastifyInstance) {
   app.post(

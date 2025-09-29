@@ -1,4 +1,5 @@
-CREATE SCHEMA IF NOT EXISTS "MFO";
+-- CreateEnum
+CREATE TYPE "public"."MovementType" AS ENUM ('ENTRADA', 'SAIDA', 'IMOBILIZADA');
 
 -- CreateTable
 CREATE TABLE "public"."Simulation" (
@@ -17,6 +18,7 @@ CREATE TABLE "public"."SimulationVersion" (
     "startDate" TIMESTAMP(3) NOT NULL,
     "realInterestRate" DOUBLE PRECISION NOT NULL,
     "isLegacy" BOOLEAN NOT NULL DEFAULT false,
+    "isLatest" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "SimulationVersion_pkey" PRIMARY KEY ("id")
@@ -49,7 +51,7 @@ CREATE TABLE "public"."AllocationRecord" (
 CREATE TABLE "public"."Movement" (
     "id" SERIAL NOT NULL,
     "simulationVersionId" INTEGER NOT NULL,
-    "type" TEXT NOT NULL,
+    "type" "public"."MovementType" NOT NULL,
     "description" TEXT NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
     "frequency" TEXT NOT NULL,

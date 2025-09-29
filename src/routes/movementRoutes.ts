@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { createMovementSchema, deleteMovementSchema, updateMovementSchema } from '../schemas/movementSchemas';
 import { MovementService } from '../services/MovementService';
-import { getSimulationVersionSchema } from 'src/schemas/simulationSchemas';
+import { getSimulationVersionSchema } from '../schemas/simulationSchemas';
 
 export async function movementRoutes(app: FastifyInstance) {
   app.post(

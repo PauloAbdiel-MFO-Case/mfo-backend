@@ -3,50 +3,35 @@ import { prisma } from '../prisma/client';
 import {
   ProjectionParams,
   ProjectionResult,
+  FullProjectionResult,
 } from '../types/projection.types';
+import { Movement, Insurance, SimulationVersion, AllocationRecord, Allocation } from '@prisma/client';
 
-async function execute({
-  simulationVersionId,
+interface ProjectionCalculationParams {
+  simulationVersion: SimulationVersion & { movements: Movement[]; insurances: Insurance[] };
+  status: 'Vivo' | 'Morto';
+  initialAllocationRecords: (AllocationRecord & { allocation: Allocation })[];
+  includeInsurance: boolean;
+}
+
+function calculateProjection({
+  simulationVersion,
   status,
-}: ProjectionParams): Promise<ProjectionResult[]> {
-  const simulationVersion = await prisma.simulationVersion.findUniqueOrThrow({
-    where: { id: simulationVersionId },
-    include: {
-      movements: true,
-      insurances: true,
-    },
-  });
-
-  const relevantAllocationIds = (
-    await prisma.allocationRecord.findMany({
-      where: { simulationVersionId },
-      select: { allocationId: true },
-      distinct: ['allocationId'],
-    })
-  ).map((r: any) => r.allocationId);
-
-  const initialAllocationRecords = await prisma.allocationRecord.findMany({
-    where: {
-      allocationId: { in: relevantAllocationIds },
-      date: { lte: simulationVersion.startDate }, 
-    },
-    orderBy: { date: 'desc' },
-    distinct: ['allocationId'], 
-    include: { allocation: true },
-  });
-
+  initialAllocationRecords,
+  includeInsurance,
+}: ProjectionCalculationParams): ProjectionResult[] {
   const startYear = simulationVersion.startDate.getFullYear();
   const results: ProjectionResult[] = [];
 
   const initialFinancialPatrimony = initialAllocationRecords.reduce(
-    (sum: any, record: any) => {
+    (sum, record) => {
       return record.allocation.type === 'FINANCEIRA' ? sum + record.value : sum;
     },
     0,
   );
 
   const initialNonFinancialPatrimony = initialAllocationRecords.reduce(
-    (sum: any, record: any) => {
+    (sum, record) => {
       return record.allocation.type === 'IMOBILIZADA' ? sum + record.value : sum;
     },
     0,
@@ -61,36 +46,37 @@ async function execute({
 
     const totalAnnualIncome = simulationVersion.movements
       .filter(
-        (m: any) =>
+        (m) =>
           m.type === 'ENTRADA' &&
           m.startDate.getFullYear() <= year &&
           (!m.endDate || m.endDate.getFullYear() >= year),
       )
-      .reduce((sum: any, m: any) => {
+      .reduce((sum, m) => {
         const value = m.frequency === 'MENSAL' ? m.value * 12 : m.value;
         return sum + value;
       }, 0);
 
     let totalAnnualExpenses = simulationVersion.movements
       .filter(
-        (m: any) =>
+        (m) =>
           m.type === 'SAIDA' &&
           m.startDate.getFullYear() <= year &&
           (!m.endDate || m.endDate.getFullYear() >= year),
       )
-      .reduce((sum: any, m: any) => {
+      .reduce((sum, m) => {
         const value = m.frequency === 'MENSAL' ? m.value * 12 : m.value;
         return sum + value;
       }, 0);
     
-    totalAnnualExpenses += simulationVersion.insurances
-      .filter(
-        (i: any) =>
-          simulationVersion.startDate.getFullYear() <= year &&
-          new Date(i.startDate).setMonth(new Date(i.startDate).getMonth() + i.durationMonths) >= new Date().setFullYear(year)
-      )
-      .reduce((sum: any, i: any) => sum + i.monthlyPremium * 12, 0);
-
+    if (includeInsurance) {
+      totalAnnualExpenses += simulationVersion.insurances
+        .filter(
+          (i) =>
+            simulationVersion.startDate.getFullYear() <= year &&
+            new Date(i.startDate).setMonth(new Date(i.startDate).getMonth() + i.durationMonths) >= new Date().setFullYear(year)
+        )
+        .reduce((sum, i) => sum + i.monthlyPremium * 12, 0);
+    }
 
     if (status === 'Morto') {
       totalAnnualExpenses /= 2;
@@ -109,8 +95,62 @@ async function execute({
     });
   }
 
-
   return results;
+}
+
+async function execute({
+  simulationVersionId,
+  status,
+  calculateWithoutInsurance = false,
+}: ProjectionParams): Promise<FullProjectionResult> {
+  const simulationVersion = await prisma.simulationVersion.findUniqueOrThrow({
+    where: { id: simulationVersionId },
+    include: {
+      movements: true,
+      insurances: true,
+    },
+  });
+
+  const relevantAllocationIds = (
+    await prisma.allocationRecord.findMany({
+      where: { simulationVersionId },
+      select: { allocationId: true },
+      distinct: ['allocationId'],
+    })
+  ).map((r) => r.allocationId);
+
+  const initialAllocationRecords = await prisma.allocationRecord.findMany({
+    where: {
+      allocationId: { in: relevantAllocationIds },
+      date: { lte: simulationVersion.startDate }, 
+    },
+    orderBy: { date: 'desc' },
+    distinct: ['allocationId'], 
+    include: { allocation: true },
+  });
+
+  const withInsuranceResults = calculateProjection({
+    simulationVersion,
+    status,
+    initialAllocationRecords,
+    includeInsurance: true,
+  });
+
+  const fullResult: FullProjectionResult = {
+    withInsurance: withInsuranceResults,
+  };
+
+  if (calculateWithoutInsurance) {
+    const withoutInsuranceResults = calculateProjection({
+      simulationVersion,
+      status,
+      initialAllocationRecords,
+      includeInsurance: false,
+    });
+    fullResult.withoutInsurance = withoutInsuranceResults;
+  }
+
+  return fullResult;
 }
 
 export const ProjectionService = {

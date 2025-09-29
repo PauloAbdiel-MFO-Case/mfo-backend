@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { ProjectionService } from '../services/ProjectionService';
 import { createNewVersionSchema, createSimulationSchema, deleteSimulationSchema, getProjectionSchema, getSimulationVersionSchema, updateSimulationSchema } from '../schemas/simulationSchemas';
-import { SimulationService } from 'src/services/SimulationService';
+import { SimulationService } from '../services/SimulationService';
 
 export async function simulationRoutes(app: FastifyInstance) {
   app.get('/simulations', async (request, reply) => {
@@ -45,13 +45,13 @@ export async function simulationRoutes(app: FastifyInstance) {
     { schema: getProjectionSchema },
     async (request, reply) => {
       try {
-        // CORREÇÃO AQUI: Apenas desestruture. Os tipos já são conhecidos.
         const { id }: any = request.params;
-        const { status }: any = request.query;
+        const { status, calculateWithoutInsurance }: any = request.query;
 
         const projection = await ProjectionService.execute({
           simulationVersionId: id,
           status,
+          calculateWithoutInsurance,
         });
 
         return reply.send(projection);
