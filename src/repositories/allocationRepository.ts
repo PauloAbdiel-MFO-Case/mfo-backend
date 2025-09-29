@@ -1,5 +1,5 @@
 import { prisma } from '../prisma/client';
-import { Prisma } from '@prisma/client';
+import { Allocation, AllocationRecord, Prisma } from '@prisma/client';
 
 async function create(
   versionId: number,
@@ -10,7 +10,7 @@ async function create(
     installments?: number;
     interestRate?: number;
   },
-) {
+): Promise<Allocation> {
   const { name, type, value, date, ...financingData } = data;
 
   return prisma.$transaction(async (tx) => {
@@ -35,27 +35,27 @@ async function create(
   });
 }
 
-async function update(id: number, data: Prisma.AllocationUpdateInput) {
+async function update(id: number, data: Prisma.AllocationUpdateInput): Promise<Allocation> {
   return prisma.allocation.update({
     where: { id },
     data,
   });
 }
 
-async function deleteById(id: number) {
+async function deleteById(id: number): Promise<Allocation> {
   return prisma.allocation.delete({
     where: { id },
   });
 }
 
-async function addRecord(data: Prisma.AllocationRecordUncheckedCreateInput) {
+async function addRecord(data: Prisma.AllocationRecordUncheckedCreateInput): Promise<AllocationRecord> {
   const record = await prisma.allocationRecord.create({
     data,
   });
   return record;
 }
 
-async function updateRecord(id: number, data: Prisma.AllocationRecordUpdateInput) {
+async function updateRecord(id: number, data: Prisma.AllocationRecordUpdateInput): Promise<AllocationRecord> {
   const record = await prisma.allocationRecord.update({
     where: { id },
     data,
@@ -63,20 +63,20 @@ async function updateRecord(id: number, data: Prisma.AllocationRecordUpdateInput
   return record;
 }
 
-async function deleteRecord(id: number) {
+async function deleteRecord(id: number): Promise<void> {
   await prisma.allocationRecord.delete({
     where: { id },
   });
 }
 
-async function findByVersionId(versionId: number) {
+async function findByVersionId(versionId: number): Promise<(AllocationRecord & { allocation: Allocation })[]> {
   return prisma.allocationRecord.findMany({
     where: { simulationVersionId: versionId },
     include: { allocation: true },
   });
 }
 
-async function findAll(){
+async function findAll(): Promise<(Allocation & { records: AllocationRecord[] })[]> {
   return prisma.allocation.findMany({
     include: { records: true },
   });

@@ -1,10 +1,37 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { z } from 'zod';
 import { ProjectionService } from '../services/ProjectionService';
 import { createNewVersionSchema, createSimulationSchema, deleteSimulationSchema, getProjectionSchema, getSimulationVersionSchema, updateSimulationSchema } from '../schemas/simulationSchemas';
 import { SimulationService } from '../services/SimulationService';
 
+type DeleteSimulationRequest = FastifyRequest<{ 
+  Params: z.infer<typeof deleteSimulationSchema.params>;
+}>;
+
+type GetProjectionRequest = FastifyRequest<{
+  Params: z.infer<typeof getProjectionSchema.params>;
+  Querystring: z.infer<typeof getProjectionSchema.querystring>;
+}>;
+
+type CreateSimulationRequest = FastifyRequest<{
+  Body: z.infer<typeof createSimulationSchema.body>;
+}>;
+
+type UpdateSimulationRequest = FastifyRequest<{
+  Params: z.infer<typeof updateSimulationSchema.params>;
+  Body: z.infer<typeof updateSimulationSchema.body>;
+}>;
+
+type CreateNewVersionRequest = FastifyRequest<{
+  Params: z.infer<typeof createNewVersionSchema.params>;
+}>;
+
+type GetSimulationVersionRequest = FastifyRequest<{
+  Params: z.infer<typeof getSimulationVersionSchema.params>;
+}>;
+
 export async function simulationRoutes(app: FastifyInstance) {
-  app.get('/simulations', async (request, reply) => {
+  app.get('/simulations', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const simulations = await SimulationService.listAll();
       return reply.send(simulations);
@@ -17,19 +44,16 @@ export async function simulationRoutes(app: FastifyInstance) {
   app.delete(
     '/simulations/versions/:id',
     { schema: deleteSimulationSchema },
-    async (request, reply) => {
+    async (request: DeleteSimulationRequest, reply: FastifyReply) => {
       try {
-        const { id }: any = request.params;
+        const { id } = request.params;
         await SimulationService.deleteById(id);
-        // O código 204 significa "No Content", a resposta padrão para um DELETE bem-sucedido.
         return reply.status(204).send();
       } catch (error: any) {
         app.log.error(error);
-        // Se a regra de negócio for violada (tentar deletar "Situação Atual")
         if (error.message.includes('Cannot delete')) {
           return reply.status(400).send({ message: error.message });
         }
-        // Se o Prisma não encontrar o ID para deletar
         if (error.code === 'P2025') {
             return reply.status(404).send({ message: 'Simulation version not found.' });
         }
@@ -43,10 +67,10 @@ export async function simulationRoutes(app: FastifyInstance) {
   app.get(
     '/simulations/:id/projection',
     { schema: getProjectionSchema },
-    async (request, reply) => {
+    async (request: GetProjectionRequest, reply: FastifyReply) => {
       try {
-        const { id }: any = request.params;
-        const { status, calculateWithoutInsurance }: any = request.query;
+        const { id } = request.params;
+        const { status, calculateWithoutInsurance } = request.query;
 
         const projection = await ProjectionService.execute({
           simulationVersionId: id,
@@ -67,18 +91,16 @@ export async function simulationRoutes(app: FastifyInstance) {
   app.post(
     '/simulations',
     { schema: createSimulationSchema },
-    async (request, reply) => {
+    async (request: CreateSimulationRequest, reply: FastifyReply) => {
       try {
-        const { sourceVersionId, newName } : any = request.body;
+        const { sourceVersionId, newName } = request.body;
         const newSimulation = await SimulationService.createFromVersion(
           sourceVersionId,
           newName,
         );
-        // Retorna 201 Created com o novo objeto
         return reply.status(201).send(newSimulation);
       } catch (error: any) {
         app.log.error(error);
-        // Se o nome já existe, retorna 409 Conflict
         if (error.message.includes('already exists')) {
           return reply.status(409).send({ message: error.message });
         }
@@ -92,9 +114,9 @@ export async function simulationRoutes(app: FastifyInstance) {
   app.put(
     '/simulations/versions/:versionId',
     { schema: updateSimulationSchema },
-    async (request: any, reply) => {
+    async (request: UpdateSimulationRequest, reply: FastifyReply) => {
       try {
-        const { versionId }: any = request.params;
+        const { versionId } = request.params;
         const updatedVersion = await SimulationService.update(
           versionId,
           request.body,
@@ -117,9 +139,9 @@ export async function simulationRoutes(app: FastifyInstance) {
    app.post(
     '/simulations/:simulationId/versions',
     { schema: createNewVersionSchema },
-    async (request, reply) => {
+    async (request: CreateNewVersionRequest, reply: FastifyReply) => {
       try {
-        const { simulationId } : any = request.params;
+        const { simulationId } = request.params;
         const newVersion = await SimulationService.createNewVersion(simulationId);
         return reply.status(201).send(newVersion);
       } catch (error: any) {
@@ -136,9 +158,9 @@ export async function simulationRoutes(app: FastifyInstance) {
   app.get(
     '/simulations/versions/:versionId',
     { schema: getSimulationVersionSchema },
-    async (request, reply) => {
+    async (request: GetSimulationVersionRequest, reply: FastifyReply) => {
       try {
-        const { versionId }: any = request.params;
+        const { versionId } = request.params;
         const versionDetails = await SimulationService.findVersionById(versionId);
         return reply.send(versionDetails);
       } catch (error: any) {
@@ -154,7 +176,7 @@ export async function simulationRoutes(app: FastifyInstance) {
     },
   );
 
-  app.get('/simulations/history', async (request, reply) => {
+  app.get('/simulations/history', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const history = await SimulationService.listAllWithVersions();
       return reply.send(history);

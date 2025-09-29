@@ -1,9 +1,10 @@
+import { Simulation, SimulationVersion } from '@prisma/client';
 import { SimulationUpdateData } from 'src/types/simulation.types';
 import { SimulationRepository } from '../repositories/simulationRepository';
 import { ProjectionService } from './ProjectionService';
 
-async function createFromVersion(sourceVersionId: number, newName: string ) {
-    const existing: boolean = await SimulationRepository.findByName(newName);
+async function createFromVersion(sourceVersionId: number, newName: string ): Promise<Simulation> {
+    const existing = await SimulationRepository.findByName(newName);
     if (existing) {
         throw new Error('A simulation with this name already exists.');
     }
@@ -17,24 +18,24 @@ async function createFromVersion(sourceVersionId: number, newName: string ) {
     return newSimulation;
 }
 
-async function update(id: number, data: SimulationUpdateData) {
+async function update(id: number, data: SimulationUpdateData): Promise<SimulationVersion> {
   return SimulationRepository.updateVersion(id, data);
 }
 
-async function listAll() {
+async function listAll(): Promise<SimulationVersion[]> {
   const simulations = await SimulationRepository.findAllLatestVersions();
   return simulations;
 }
 
-async function deleteById(id: number) {
+async function deleteById(id: number): Promise<void> {
   await SimulationRepository.deleteVersionById(id);
 }
 
-async function createNewVersion(simulationId: number) {
+async function createNewVersion(simulationId: number): Promise<SimulationVersion> {
   return SimulationRepository.createNewVersion(simulationId);
 }
 
-async function findVersionById(id: number) {
+async function findVersionById(id: number): Promise<SimulationVersion> {
   const version = await SimulationRepository.findVersionById(id);
   if (!version) {
     throw new Error('Simulation version not found.');
@@ -42,11 +43,15 @@ async function findVersionById(id: number) {
   return version;
 }
 
-async function listAllWithVersions() {
+type SimulationWithVersions = Simulation & { versions: SimulationVersion[] };
+type VersionWithPatrimony = SimulationVersion & { finalPatrimony: number };
+type SimulationWithPatrimony = Simulation & { versions: VersionWithPatrimony[] };
+
+async function listAllWithVersions(): Promise<SimulationWithPatrimony[]> {
   const simulations = await SimulationRepository.findAllWithVersions();
 
-  const simulationsWithPatrimony = await Promise.all(simulations.map(async (sim: any) => {
-    const versionsWithPatrimony = await Promise.all(sim.versions.map(async (version: any) => {
+  const simulationsWithPatrimony = await Promise.all(simulations.map(async (sim: SimulationWithVersions) => {
+    const versionsWithPatrimony = await Promise.all(sim.versions.map(async (version: SimulationVersion) => {
       try {
         const projection = await ProjectionService.execute({
           simulationVersionId: version.id,

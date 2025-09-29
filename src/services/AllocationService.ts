@@ -1,24 +1,24 @@
+import { Allocation, AllocationRecord, Prisma } from '@prisma/client';
 import { AllocationCreationData, AllocationRecordCreationData } from 'src/types/allocation.types';
 import { AllocationRepository } from '../repositories/allocationRepository';
-import { Prisma } from '@prisma/client';
 
-async function create(versionId: number, data: AllocationCreationData) {
+async function create(versionId: number, data: AllocationCreationData): Promise<Allocation> {
   const allocation = await AllocationRepository.create(versionId, data);
   return allocation;
 }
 
-async function update(id: number, data: Prisma.AllocationUpdateInput) {
+async function update(id: number, data: Prisma.AllocationUpdateInput): Promise<Allocation> {
   return AllocationRepository.update(id, data);
 }
 
-async function deleteById(id: number) {
-  return AllocationRepository.deleteById(id);
+async function deleteById(id: number): Promise<void> {
+  await AllocationRepository.deleteById(id);
 }
 
 async function addRecord(
   allocationId: number,
   data: AllocationRecordCreationData,
-) {
+): Promise<AllocationRecord> {
   const recordData = {
     ...data,
     allocationId,
@@ -29,21 +29,21 @@ async function addRecord(
 
 async function updateRecord(
   id: number,
-  data: { value?: number; date?: Date },
-) {
+  data: Prisma.AllocationRecordUpdateInput,
+): Promise<AllocationRecord> {
   const updatedRecord = await AllocationRepository.updateRecord(id, data);
   return updatedRecord;
 }
 
-async function deleteRecord(id: number) {
+async function deleteRecord(id: number): Promise<void> {
   await AllocationRepository.deleteRecord(id);
 }
 
-async function findByVersionId(versionId: number) {
+async function findByVersionId(versionId: number): Promise<(AllocationRecord & { allocation: Allocation })[]> {
   return AllocationRepository.findByVersionId(versionId);
 }
 
-async function findAll(){
+async function findAll(): Promise<(Allocation & { records: AllocationRecord[] })[]> {
   return AllocationRepository.findAll();
 }
 

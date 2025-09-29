@@ -1,24 +1,24 @@
+import { Insurance, Prisma } from '@prisma/client';
 import { InsuranceCreationData } from 'src/types/insurance.types';
 import { InsuranceRepository } from '../repositories/insuranceRepository';
-import { Prisma } from '@prisma/client';
 
-async function create(versionId: number, data: InsuranceCreationData) {
+async function create(versionId: number, data: InsuranceCreationData): Promise<Insurance> {
   return InsuranceRepository.create({ ...data, simulationVersionId: versionId });
 }
 
-async function update(id: number, data: Prisma.InsuranceUpdateInput) {
+async function update(id: number, data: Prisma.InsuranceUpdateInput): Promise<Insurance> {
   return InsuranceRepository.update(id, data);
 }
 
-async function deleteById(id: number) {
-  return InsuranceRepository.deleteById(id);
+async function deleteById(id: number): Promise<void> {
+  await InsuranceRepository.deleteById(id);
 }
 
-async function findByVersionId(versionId: number) {
+async function findByVersionId(versionId: number): Promise<Insurance[]> {
   return InsuranceRepository.findByVersionId(versionId);
 }
 
-async function findAll() {
+async function findAll(): Promise<Insurance[]> {
   return InsuranceRepository.findAll();
 }
 

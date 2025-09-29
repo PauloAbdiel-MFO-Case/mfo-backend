@@ -152,7 +152,3 @@ async function execute({
 
   return fullResult;
 }
-
-export const ProjectionService = {
-  execute,
-};

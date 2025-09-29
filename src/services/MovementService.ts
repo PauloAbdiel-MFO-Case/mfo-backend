@@ -1,10 +1,10 @@
+import { Movement, Prisma } from '@prisma/client';
 import { MovementRepository } from '../repositories/movementRepository';
-import { Prisma } from '@prisma/client';
 
 async function create(
   versionId: number,
   data: Omit<Prisma.MovementUncheckedCreateInput, 'simulationVersionId'>,
-) {
+): Promise<Movement> {
   const movementData = {
     ...data,
     simulationVersionId: versionId, 
@@ -17,20 +17,20 @@ async function create(
 async function update(
   id: number,
   data: Prisma.MovementUpdateInput,
-) {
+): Promise<Movement> {
   const movement = await MovementRepository.update(id, data);
   return movement;
 }
 
-async function deleteById(id: number) {
+async function deleteById(id: number): Promise<void> {
   await MovementRepository.deleteById(id);
 }
 
-async function findByVersionId(versionId: number) {
+async function findByVersionId(versionId: number): Promise<Movement[]> {
   return MovementRepository.findByVersionId(versionId);
 }
 
-async function findAll() {
+async function findAll(): Promise<Movement[]> {
   return MovementRepository.findAll();
 }
 

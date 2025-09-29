@@ -1,4 +1,5 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { z } from 'zod';
 import {
   createInsuranceSchema,
   deleteInsuranceSchema,
@@ -7,13 +8,31 @@ import {
 import { InsuranceService } from '../services/InsuranceService';
 import { getSimulationVersionSchema } from '../schemas/simulationSchemas';
 
+type CreateInsuranceRequest = FastifyRequest<{ 
+  Params: z.infer<typeof createInsuranceSchema.params>;
+  Body: z.infer<typeof createInsuranceSchema.body>;
+}>;
+
+type UpdateInsuranceRequest = FastifyRequest<{
+  Params: z.infer<typeof updateInsuranceSchema.params>;
+  Body: z.infer<typeof updateInsuranceSchema.body>;
+}>;
+
+type DeleteInsuranceRequest = FastifyRequest<{
+  Params: z.infer<typeof deleteInsuranceSchema.params>;
+}>;
+
+type GetInsurancesRequest = FastifyRequest<{
+  Params: z.infer<typeof getSimulationVersionSchema.params>;
+}>;
+
 export async function insuranceRoutes(app: FastifyInstance) {
   app.post(
     '/versions/:versionId/insurances',
     { schema: createInsuranceSchema },
-    async (request : any, reply) => {
+    async (request : CreateInsuranceRequest, reply: FastifyReply) => {
       try {
-        const { versionId } : any = request.params;
+        const { versionId } = request.params;
         const insurance = await InsuranceService.create(versionId, request.body);
         return reply.status(201).send(insurance);
       } catch (error: any) {
@@ -28,9 +47,9 @@ export async function insuranceRoutes(app: FastifyInstance) {
   app.put(
     '/insurances/:insuranceId',
     { schema: updateInsuranceSchema },
-    async (request, reply) => {
+    async (request: UpdateInsuranceRequest, reply: FastifyReply) => {
       try {
-        const { insuranceId } : any = request.params;
+        const { insuranceId } = request.params;
         const insurance = await InsuranceService.update(insuranceId, request.body);
         return reply.send(insurance);
       } catch (error: any) {
@@ -45,9 +64,9 @@ export async function insuranceRoutes(app: FastifyInstance) {
   app.delete(
     '/insurances/:insuranceId',
     { schema: deleteInsuranceSchema },
-    async (request, reply) => {
+    async (request: DeleteInsuranceRequest, reply: FastifyReply) => {
       try {
-        const { insuranceId } : any = request.params;
+        const { insuranceId } = request.params;
         await InsuranceService.deleteById(insuranceId);
         return reply.status(204).send();
       } catch (error: any) {
@@ -62,9 +81,9 @@ export async function insuranceRoutes(app: FastifyInstance) {
   app.get(
     '/versions/:versionId/insurances',
     { schema: getSimulationVersionSchema }, 
-    async (request, reply) => {
+    async (request: GetInsurancesRequest, reply: FastifyReply) => {
       try {
-        const { versionId } : any = request.params;
+        const { versionId } = request.params;
         const insurances = await InsuranceService.findByVersionId(versionId);
         return reply.send(insurances);
       } catch (error) {
@@ -76,9 +95,8 @@ export async function insuranceRoutes(app: FastifyInstance) {
 
   app.get(
     '/insurances',
-    async (request, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const { versionId } : any = request.params;
         const insurances = await InsuranceService.findAll();
         return reply.send(insurances);
       } catch (error) {

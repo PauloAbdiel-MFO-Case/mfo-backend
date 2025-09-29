@@ -1,13 +1,32 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { z } from 'zod';
 import { createMovementSchema, deleteMovementSchema, updateMovementSchema } from '../schemas/movementSchemas';
 import { MovementService } from '../services/MovementService';
 import { getSimulationVersionSchema } from '../schemas/simulationSchemas';
+
+type CreateMovementRequest = FastifyRequest<{ 
+  Params: z.infer<typeof createMovementSchema.params>;
+  Body: z.infer<typeof createMovementSchema.body>;
+}>;
+
+type UpdateMovementRequest = FastifyRequest<{
+  Params: z.infer<typeof updateMovementSchema.params>;
+  Body: z.infer<typeof updateMovementSchema.body>;
+}>;
+
+type DeleteMovementRequest = FastifyRequest<{
+  Params: z.infer<typeof deleteMovementSchema.params>;
+}>;
+
+type GetMovementsRequest = FastifyRequest<{
+  Params: z.infer<typeof getSimulationVersionSchema.params>;
+}>;
 
 export async function movementRoutes(app: FastifyInstance) {
   app.post(
     '/versions/:versionId/movements',
     { schema: createMovementSchema },
-    async (request: any, reply) => {
+    async (request: CreateMovementRequest, reply: FastifyReply) => {
       try {
         const { versionId } = request.params;
         const movement = await MovementService.create(versionId, request.body);
@@ -22,9 +41,9 @@ export async function movementRoutes(app: FastifyInstance) {
    app.put(
     '/movements/:movementId',
     { schema: updateMovementSchema },
-    async (request, reply) => {
+    async (request: UpdateMovementRequest, reply: FastifyReply) => {
       try {
-        const { movementId } : any = request.params;
+        const { movementId } = request.params;
         const updatedMovement = await MovementService.update(
           movementId,
           request.body,
@@ -44,9 +63,9 @@ export async function movementRoutes(app: FastifyInstance) {
   app.delete(
     '/movements/:movementId',
     { schema: deleteMovementSchema },
-    async (request, reply) => {
+    async (request: DeleteMovementRequest, reply: FastifyReply) => {
       try {
-        const { movementId }: any = request.params;
+        const { movementId } = request.params;
         await MovementService.deleteById(movementId);
         return reply.status(204).send();
       } catch (error: any) {
@@ -62,9 +81,9 @@ export async function movementRoutes(app: FastifyInstance) {
   app.get(
     '/versions/:versionId/movements',
     { schema: getSimulationVersionSchema }, 
-    async (request, reply) => {
+    async (request: GetMovementsRequest, reply: FastifyReply) => {
       try {
-        const { versionId }: any = request.params;
+        const { versionId } = request.params;
         const movements = await MovementService.findByVersionId(versionId);
         return reply.send(movements);
       } catch (error) {
@@ -76,7 +95,7 @@ export async function movementRoutes(app: FastifyInstance) {
 
   app.get(
     '/movements', 
-    async (request: any, reply) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const movements = await MovementService.findAll();
         return reply.send(movements);
