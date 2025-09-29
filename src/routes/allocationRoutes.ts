@@ -90,6 +90,25 @@ export async function allocationRoutes(app: FastifyInstance) {
     },
   );
 
+  app.delete(
+    '/allocations/:allocationId',
+    { schema: deleteAllocationSchema },
+    async (request, reply) => {
+      try {
+        const { allocationId }: any = request.params;
+        await AllocationService.deleteById(allocationId);
+        return reply.status(204).send();
+      } catch (error: any) {
+        if (error.code === 'P2025') {
+          return reply.status(404).send({ message: 'Allocation not found.' });
+        }
+        return reply
+          .status(500)
+          .send({ message: 'Error deleting allocation.' });
+      }
+    },
+  );
+
   app.get(
     '/versions/:versionId/allocation-records',
     { schema: getSimulationVersionSchema },
