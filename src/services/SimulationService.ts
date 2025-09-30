@@ -7,8 +7,8 @@ type SimulationWithVersions = Simulation & { versions: SimulationVersion[] };
 type VersionWithPatrimony = SimulationVersion & { finalPatrimony: number };
 type SimulationWithPatrimony = Simulation & { versions: VersionWithPatrimony[] };
 
-async function createFromVersion(sourceVersionId: number, newName: string, userId: number ): Promise<Simulation> {
-    const existing = await SimulationRepository.findByName(newName, userId);
+async function createFromVersion(sourceVersionId: number, newName: string ): Promise<Simulation> {
+    const existing = await SimulationRepository.findByName(newName);
     if (existing) {
         throw new Error('A simulation with this name already exists.');
     }
@@ -18,7 +18,7 @@ async function createFromVersion(sourceVersionId: number, newName: string, userI
         throw new Error('Source simulation version not found.');
     }
 
-    const newSimulation = await SimulationRepository.createFromVersion(sourceVersion, newName, userId);
+    const newSimulation = await SimulationRepository.createFromVersion(sourceVersion, newName);
     return newSimulation;
 }
 
@@ -26,8 +26,8 @@ async function update(id: number, data: SimulationUpdateData): Promise<Simulatio
   return SimulationRepository.updateVersion(id, data);
 }
 
-async function listAll(userId: number) {
-  return SimulationRepository.findAllLatestVersions(userId);
+async function listAll() {
+  return SimulationRepository.findAllLatestVersions();
 }
 
 async function deleteById(id: number): Promise<void> {
@@ -46,8 +46,8 @@ async function findVersionById(id: number) {
   return version;
 }
 
-async function listAllWithVersions(userId: number): Promise<SimulationWithPatrimony[]> {
-  const simulations = await SimulationRepository.findAllWithVersions(userId);
+async function listAllWithVersions(): Promise<SimulationWithPatrimony[]> {
+  const simulations = await SimulationRepository.findAllWithVersions();
 
   if (!simulations || simulations.length === 0) {
     return [];

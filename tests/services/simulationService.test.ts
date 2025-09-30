@@ -13,7 +13,6 @@ describe('SimulationService', () => {
     it('should create a new simulation from a version', async () => {
       const sourceVersionId = 1;
       const newName = 'New Sim';
-      const userId = 1;
       const sourceVersion = { id: sourceVersionId };
 
       (SimulationRepository.findByName as jest.Mock).mockResolvedValue(null);
@@ -21,21 +20,20 @@ describe('SimulationService', () => {
       (SimulationRepository.createFromVersion as jest.Mock).mockResolvedValue({ id: 2, name: newName } as any);
 
 
-      await SimulationService.createFromVersion(sourceVersionId, newName, userId);
+      await SimulationService.createFromVersion(sourceVersionId, newName);
 
-      expect(SimulationRepository.findByName).toHaveBeenCalledWith(newName, userId);
+      expect(SimulationRepository.findByName).toHaveBeenCalledWith(newName);
       expect(SimulationRepository.findVersionByIdWithDetails).toHaveBeenCalledWith(sourceVersionId);
-      expect(SimulationRepository.createFromVersion).toHaveBeenCalledWith(sourceVersion, newName, userId);
+      expect(SimulationRepository.createFromVersion).toHaveBeenCalledWith(sourceVersion, newName);
     });
 
     it('should throw an error if a simulation with the same name already exists', async () => {
       const sourceVersionId = 1;
       const newName = 'Existing Sim';
-      const userId = 1;
 
       (SimulationRepository.findByName as jest.Mock).mockResolvedValue({ id: 2, name: newName });
 
-      await expect(SimulationService.createFromVersion(sourceVersionId, newName, userId)).rejects.toThrow(
+      await expect(SimulationService.createFromVersion(sourceVersionId, newName)).rejects.toThrow(
         'A simulation with this name already exists.'
       );
     });
@@ -43,12 +41,11 @@ describe('SimulationService', () => {
     it('should throw an error if the source version is not found', async () => {
         const sourceVersionId = 1;
         const newName = 'New Sim';
-        const userId = 1;
   
         (SimulationRepository.findByName as jest.Mock).mockResolvedValue(null);
         (SimulationRepository.findVersionByIdWithDetails as jest.Mock).mockResolvedValue(null);
   
-        await expect(SimulationService.createFromVersion(sourceVersionId, newName, userId)).rejects.toThrow(
+        await expect(SimulationService.createFromVersion(sourceVersionId, newName)).rejects.toThrow(
           'Source simulation version not found.'
         );
       });
@@ -65,9 +62,8 @@ describe('SimulationService', () => {
 
   describe('listAll', () => {
     it('should call SimulationRepository.findAllLatestVersions with the user ID', async () => {
-        const userId = 1;
-        await SimulationService.listAll(userId);
-        expect(SimulationRepository.findAllLatestVersions).toHaveBeenCalledWith(userId);
+        await SimulationService.listAll();
+        expect(SimulationRepository.findAllLatestVersions).toHaveBeenCalledWith();
     });
   });
 
@@ -106,9 +102,8 @@ describe('SimulationService', () => {
 
   describe('listAllWithVersions', () => {
     it('should call SimulationRepository.findAllWithVersions with the correct user ID', async () => {
-        const userId = 1;
-        await SimulationService.listAllWithVersions(userId);
-        expect(SimulationRepository.findAllWithVersions).toHaveBeenCalledWith(userId);
+        await SimulationService.listAllWithVersions();
+        expect(SimulationRepository.findAllWithVersions).toHaveBeenCalledWith();
     });
   });
 });

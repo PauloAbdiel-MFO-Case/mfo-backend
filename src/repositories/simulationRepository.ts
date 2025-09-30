@@ -18,10 +18,9 @@ async function findVersionByIdWithDetails(id: number): Promise<DetailedSimulatio
   return simulationVersion as DetailedSimulationVersion;
 }
 
-async function findAllLatestVersions(userId: number) {
+async function findAllLatestVersions() {
   return prisma.simulationVersion.findMany({
     where: {
-      simulation: { userId: userId },
       isLatest: true,
     },
     include: {
@@ -51,14 +50,9 @@ async function deleteVersionById(id: number): Promise<void> {
   });
 }
 
-async function findByName(name: string, userId: number): Promise<Simulation | null> {
+async function findByName(name: string) {
   return prisma.simulation.findUnique({
-    where: {
-      userId_name: {
-        userId,
-        name,
-      },
-    },
+    where: { name },
   });
 }
 
@@ -78,9 +72,8 @@ async function findVersionById(id: number) {
   });
 }
 
-async function findAllWithVersions(userId: number) {
+async function findAllWithVersions() { 
   return prisma.simulation.findMany({
-    where: { userId },
     include: {
       versions: {
         orderBy: {
@@ -94,13 +87,11 @@ async function findAllWithVersions(userId: number) {
 async function createFromVersion(
   sourceVersion: DetailedSimulationVersion,
   newName: string,
-  userId: number
 ) {
   return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const createdSim = await tx.simulation.create({
       data: {
         name: newName,
-        userId: userId,
         versions: {
           create: {
             version: 1,

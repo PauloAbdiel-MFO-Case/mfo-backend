@@ -1,5 +1,5 @@
 import { Insurance, Prisma } from '@prisma/client';
-import { InsuranceCreationData } from 'src/types/insurance.types';
+import { InsuranceCreationData } from '@/types/insurance.types';
 import { InsuranceRepository } from '../repositories/insuranceRepository';
 
 async function create(versionId: number, data: InsuranceCreationData): Promise<Insurance> {

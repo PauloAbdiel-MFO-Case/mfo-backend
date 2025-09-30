@@ -1,5 +1,5 @@
 import { Allocation, AllocationRecord, Prisma } from '@prisma/client';
-import { AllocationCreationData, AllocationRecordCreationData } from 'src/types/allocation.types';
+import { AllocationCreationData, AllocationRecordCreationData } from '@/types/allocation.types';
 import { AllocationRepository } from '../repositories/allocationRepository';
 
 async function create(versionId: number, data: AllocationCreationData): Promise<Allocation> {
