@@ -1,6 +1,6 @@
 export type ProjectionParams = {
   simulationVersionId: number;
-  status: 'Vivo' | 'Morto';
+  status: 'Invalido' | 'Morto';
   calculateWithoutInsurance?: boolean;
 };
 

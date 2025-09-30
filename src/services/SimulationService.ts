@@ -58,7 +58,7 @@ async function listAllWithVersions(): Promise<SimulationWithPatrimony[]> {
       try {
         const projection = await ProjectionService.execute({
           simulationVersionId: version.id,
-          status: 'Vivo',
+          status: 'Invalido',
         });
         const finalPatrimony = projection.withInsurance[projection.withInsurance.length - 1]?.totalPatrimony || 0;
         return { ...version, finalPatrimony };

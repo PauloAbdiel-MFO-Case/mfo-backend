@@ -8,7 +8,7 @@ import { Movement, Insurance, SimulationVersion, AllocationRecord, Allocation } 
 
 interface ProjectionCalculationParams {
   simulationVersion: SimulationVersion & { movements: Movement[]; insurances: Insurance[] };
-  status: 'Vivo' | 'Morto';
+  status: 'Invalido' | 'Morto';
   initialAllocationRecords: (AllocationRecord & { allocation: Allocation })[];
   includeInsurance: boolean;
 }

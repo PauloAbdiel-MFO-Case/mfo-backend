@@ -4,7 +4,7 @@ import { prismaMock } from '@/tests/singleton';
 describe('ProjectionService', () => {
   describe('execute', () => {
     it('should execute a projection and return the correct results', async () => {
-      const params = { simulationVersionId: 1, status: 'Vivo' as const };
+      const params = { simulationVersionId: 1, status: 'Invalido' as const };
       const simulationVersion = {
         id: 1,
         startDate: new Date('2023-01-01T12:00:00'),

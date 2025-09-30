@@ -5,7 +5,7 @@ export const getProjectionSchema = {
     id: z.coerce.number().int().positive(),
   }),
   querystring: z.object({
-    status: z.enum(['Vivo', 'Morto']),
+    status: z.enum(['Invalido', 'Morto']),
     calculateWithoutInsurance: z.coerce.boolean().optional(),
   }),
 };

@@ -108,7 +108,7 @@ describe('Simulation Routes', () => {
    describe('GET /simulations/:id/projection', () => {
     it('should return the projection for a simulation version', async () => {
       const id = 1;
-      const status = 'Vivo';
+      const status = 'Invalido';
       const projectionData = { withInsurance: [{ year: 2023, value: 1000 }] };
 
       (ProjectionService.execute as jest.Mock).mockResolvedValue(projectionData as any);
