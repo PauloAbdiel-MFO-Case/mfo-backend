@@ -5,7 +5,6 @@ describe('ProjectionService', () => {
   describe('execute', () => {
     it('should execute a projection and return the correct results', async () => {
       const params = { simulationVersionId: 1, status: 'Vivo' as const };
-
       const simulationVersion = {
         id: 1,
         startDate: new Date('2023-01-01T12:00:00'),
@@ -25,14 +24,15 @@ describe('ProjectionService', () => {
       ];
 
       prismaMock.simulationVersion.findUniqueOrThrow.mockResolvedValue(simulationVersion as any);
-      prismaMock.allocationRecord.findMany.mockResolvedValueOnce([{ allocationId: 1 }, { allocationId: 2 }] as any)
-                                           .mockResolvedValueOnce(allocationRecords as any);
+      prismaMock.allocationRecord.findMany
+        .mockResolvedValueOnce([{ allocationId: 1 }, { allocationId: 2 }] as any)
+        .mockResolvedValueOnce(allocationRecords as any);
 
-      const results = await ProjectionService.execute(params);
+      const result = await ProjectionService.execute(params);
+      const results = result.withInsurance;
 
       expect(results).toHaveLength(2060 - 2023 + 1);
 
-      // Check the first year (2023)
       const firstYear = results[0];
       expect(firstYear.year).toBe(2023);
       expect(firstYear.nonFinancialPatrimony).toBe(500000);
@@ -42,7 +42,6 @@ describe('ProjectionService', () => {
       expect(firstYear.financialPatrimony).toBeCloseTo(expectedFinancialPatrimony2023);
       expect(firstYear.totalPatrimony).toBeCloseTo(expectedFinancialPatrimony2023 + 500000);
 
-      // Check the second year (2024)
       const secondYear = results[1];
       expect(secondYear.year).toBe(2024);
       const expectedFinancialPatrimony2024 = (expectedFinancialPatrimony2023 * 1.05) + annualIncome - annualExpenses;
@@ -65,7 +64,8 @@ describe('ProjectionService', () => {
         prismaMock.simulationVersion.findUniqueOrThrow.mockResolvedValue(simulationVersion as any);
         prismaMock.allocationRecord.findMany.mockResolvedValueOnce([] as any).mockResolvedValueOnce([] as any);
   
-        const results = await ProjectionService.execute(params);
+        const result = await ProjectionService.execute(params);
+        const results = result.withInsurance;
   
         const annualExpenses = (2000 * 12) / 2;
         const expectedFinancialPatrimony2023 = 0 - annualExpenses;

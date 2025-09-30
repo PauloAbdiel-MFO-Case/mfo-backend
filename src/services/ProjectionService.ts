@@ -1,10 +1,9 @@
-
-import { prisma } from '../prisma/client';
+import { prisma } from '@/prisma/client';
 import {
   ProjectionParams,
   ProjectionResult,
   FullProjectionResult,
-} from '../types/projection.types';
+} from '@/types/projection.types';
 import { Movement, Insurance, SimulationVersion, AllocationRecord, Allocation } from '@prisma/client';
 
 interface ProjectionCalculationParams {
@@ -24,16 +23,12 @@ function calculateProjection({
   const results: ProjectionResult[] = [];
 
   const initialFinancialPatrimony = initialAllocationRecords.reduce(
-    (sum, record) => {
-      return record.allocation.type === 'FINANCEIRA' ? sum + record.value : sum;
-    },
+    (sum, record) => (record.allocation.type === 'FINANCEIRA' ? sum + record.value : sum),
     0,
   );
 
   const initialNonFinancialPatrimony = initialAllocationRecords.reduce(
-    (sum, record) => {
-      return record.allocation.type === 'IMOBILIZADA' ? sum + record.value : sum;
-    },
+    (sum, record) => (record.allocation.type === 'IMOBILIZADA' ? sum + record.value : sum),
     0,
   );
 
@@ -72,8 +67,8 @@ function calculateProjection({
       totalAnnualExpenses += simulationVersion.insurances
         .filter(
           (i) =>
-            simulationVersion.startDate.getFullYear() <= year &&
-            new Date(i.startDate).setMonth(new Date(i.startDate).getMonth() + i.durationMonths) >= new Date().setFullYear(year)
+            new Date(i.startDate).getFullYear() <= year &&
+            (new Date(i.startDate).getFullYear() + i.durationMonths / 12) >= year
         )
         .reduce((sum, i) => sum + i.monthlyPremium * 12, 0);
     }
@@ -152,3 +147,7 @@ async function execute({
 
   return fullResult;
 }
+
+export const ProjectionService = {
+  execute,
+};

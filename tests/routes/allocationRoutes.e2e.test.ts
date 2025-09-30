@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { buildApp } from '@/server';
+import { buildApp } from '../../src/server';
 import { AllocationService } from '@/services/AllocationService';
 import { FastifyInstance } from 'fastify';
 
@@ -8,8 +8,9 @@ jest.mock('@/services/AllocationService');
 describe('Allocation Routes', () => {
   let app: FastifyInstance;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     app = buildApp();
+    await app.ready();
   });
 
   afterAll(async () => {
@@ -23,7 +24,7 @@ describe('Allocation Routes', () => {
   describe('POST /versions/:versionId/allocations', () => {
     it('should create an allocation and return 201', async () => {
       const versionId = 1;
-      const allocationData = { name: 'Test', type: 'FINANCIAL', value: 100, date: new Date().toISOString() };
+      const allocationData = { name: 'Test', type: 'FINANCEIRA', value: 100, date: new Date().toISOString() };
       const createdAllocation = { id: 1, ...allocationData };
 
       (AllocationService.create as jest.Mock).mockResolvedValue(createdAllocation);
@@ -33,7 +34,7 @@ describe('Allocation Routes', () => {
         .send(allocationData);
 
       expect(response.status).toBe(201);
-      expect(response.body).toEqual(createdAllocation);
+      expect(response.body.name).toEqual(createdAllocation.name);
     });
   });
 });

@@ -1,7 +1,5 @@
-'use client';
-
-import { DetailedSimulationVersion, SimulationUpdateData } from 'src/types/simulation.types';
-import { prisma } from '../prisma/client';
+import { DetailedSimulationVersion, SimulationUpdateData } from '@/types/simulation.types';
+import { prisma } from '@/prisma/client';
 import { Prisma, Simulation, SimulationVersion } from '@prisma/client';
 
 async function findVersionByIdWithDetails(id: number): Promise<DetailedSimulationVersion> {
@@ -17,12 +15,13 @@ async function findVersionByIdWithDetails(id: number): Promise<DetailedSimulatio
       insurances: true,
     },
   });
-  return simulationVersion;
+  return simulationVersion as DetailedSimulationVersion;
 }
 
-async function findAllLatestVersions(): Promise<(SimulationVersion & { simulation: Simulation; allocationRecords: (AllocationRecord & { allocation: Allocation })[] })[]> {
-  const latestVersions = await prisma.simulationVersion.findMany({
+async function findAllLatestVersions(userId: number) {
+  return prisma.simulationVersion.findMany({
     where: {
+      simulation: { userId: userId },
       isLatest: true,
     },
     include: {
@@ -34,7 +33,6 @@ async function findAllLatestVersions(): Promise<(SimulationVersion & { simulatio
       },
     },
   });
-  return latestVersions;
 }
 
 async function deleteVersionById(id: number): Promise<void> {
@@ -53,14 +51,18 @@ async function deleteVersionById(id: number): Promise<void> {
   });
 }
 
-async function findByName(name: string): Promise<boolean> {
-  const simulation = await prisma.simulation.findUnique({
-    where: { name },
+async function findByName(name: string, userId: number): Promise<Simulation | null> {
+  return prisma.simulation.findUnique({
+    where: {
+      userId_name: {
+        userId,
+        name,
+      },
+    },
   });
-  return !!simulation;
 }
 
-async function findVersionById(id: number): Promise<DetailedSimulationVersion> {
+async function findVersionById(id: number) {
   return prisma.simulationVersion.findUniqueOrThrow({
     where: { id },
     include: {
@@ -76,8 +78,9 @@ async function findVersionById(id: number): Promise<DetailedSimulationVersion> {
   });
 }
 
-async function findAllWithVersions(): Promise<(Simulation & { versions: SimulationVersion[] })[]> {
+async function findAllWithVersions(userId: number) {
   return prisma.simulation.findMany({
+    where: { userId },
     include: {
       versions: {
         orderBy: {
@@ -91,11 +94,13 @@ async function findAllWithVersions(): Promise<(Simulation & { versions: Simulati
 async function createFromVersion(
   sourceVersion: DetailedSimulationVersion,
   newName: string,
-): Promise<Simulation & { versions: SimulationVersion[] }> {
-  const newSimulation = await prisma.$transaction(async (tx) => {
+  userId: number
+) {
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const createdSim = await tx.simulation.create({
       data: {
         name: newName,
+        userId: userId,
         versions: {
           create: {
             version: 1,
@@ -140,12 +145,10 @@ async function createFromVersion(
     });
     return createdSim;
   });
-
-  return newSimulation;
 }
 
-async function updateVersion(id: number, data: SimulationUpdateData): Promise<SimulationVersion> {
-  return prisma.$transaction(async (tx) => {
+async function updateVersion(id: number, data: SimulationUpdateData) {
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const versionToUpdate = await tx.simulationVersion.findUniqueOrThrow({
       where: { id },
       include: { simulation: true },
@@ -174,8 +177,8 @@ async function updateVersion(id: number, data: SimulationUpdateData): Promise<Si
   });
 }
 
-async function createNewVersion(simulationId: number): Promise<SimulationVersion> {
-  return prisma.$transaction(async (tx) => {
+async function createNewVersion(simulationId: number) {
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const latestVersion = await tx.simulationVersion.findFirstOrThrow({
       where: {
         simulationId: simulationId,
@@ -205,7 +208,7 @@ async function createNewVersion(simulationId: number): Promise<SimulationVersion
         startDate: latestVersion.startDate,
         realInterestRate: latestVersion.realInterestRate,
         movements: {
-          create: latestVersion.movements.map((m) => ({
+          create: latestVersion.movements.map((m: any) => ({
             type: m.type,
             description: m.description,
             value: m.value,

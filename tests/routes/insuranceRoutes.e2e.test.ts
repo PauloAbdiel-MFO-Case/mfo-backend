@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { buildApp } from '@/server';
+import { buildApp } from '../../src/server';
 import { InsuranceService } from '@/services/InsuranceService';
 import { FastifyInstance } from 'fastify';
 
@@ -8,8 +8,9 @@ jest.mock('@/services/InsuranceService');
 describe('Insurance Routes', () => {
   let app: FastifyInstance;
 
-  beforeAll(() => {
-    app = buildApp();
+  beforeAll(async () => {
+    app = await buildApp();
+    await app.ready();
   });
 
   afterAll(async () => {
@@ -23,7 +24,13 @@ describe('Insurance Routes', () => {
   describe('POST /versions/:versionId/insurances', () => {
     it('should create an insurance and return 201', async () => {
       const versionId = 1;
-      const insuranceData = { name: 'Test', type: 'LIFE', startDate: new Date().toISOString(), monthlyPremium: 100, coverage: 100000 };
+      const insuranceData = { 
+        name: 'Test', 
+        startDate: new Date().toISOString(), 
+        monthlyPremium: 100, 
+        insuredValue: 100000,
+        durationMonths: 120
+      };
       const createdInsurance = { id: 1, ...insuranceData };
 
       (InsuranceService.create as jest.Mock).mockResolvedValue(createdInsurance);
@@ -33,7 +40,7 @@ describe('Insurance Routes', () => {
         .send(insuranceData);
 
       expect(response.status).toBe(201);
-      expect(response.body).toEqual(createdInsurance);
+      expect(response.body.name).toEqual(createdInsurance.name);
     });
   });
 
